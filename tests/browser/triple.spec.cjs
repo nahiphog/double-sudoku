@@ -141,3 +141,78 @@ test('all minimum ties have matching solutions and a new minimum replaces earlie
   await expect(page.locator('.simulation-example')).toHaveCount(1);
   await expect(page.locator('#simulationExampleTitle')).toHaveText('Fewest-clue examples: 40 clues · 1 puzzle');
 });
+
+test('each example copies its own puzzle and solution as text and PNG, with failure feedback', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.copiedTexts = []; window.copiedImages = []; window.rejectCopy = false;
+    Object.defineProperty(navigator, 'clipboard', { value: {
+      writeText: async text => {
+        if (window.rejectCopy) throw new Error('Denied');
+        window.copiedTexts.push(text);
+      },
+      write: async items => {
+        if (window.rejectCopy) throw new Error('Denied');
+        for (const item of items) {
+          const blob = await item.getType('image/png');
+          const bitmap = await createImageBitmap(blob);
+          const canvas = document.createElement('canvas');
+          canvas.width = bitmap.width; canvas.height = bitmap.height;
+          canvas.getContext('2d').drawImage(bitmap, 0, 0);
+          window.copiedImages.push(canvas.toDataURL());
+          bitmap.close();
+        }
+      },
+    } });
+  });
+  await page.route('**/triple-simulation-worker.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: `importScripts('triple-sudoku.js'); onmessage=()=>{
+      const base=TripleSudoku.completedGrid(()=>0.5);
+      for(let i=0;i<2;i++) { const solution=base.map(n=>(n+i)%3+1);
+        postMessage({type:'sample',puzzle:solution.map((n,j)=>j<30?n:0),solution,completed:i+1}); }
+      postMessage({type:'done'});
+    };`,
+  }));
+  await page.goto('/triple.html');
+  await page.locator('#simulationTrials').fill('2');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 2 of 2 trials.');
+  await page.locator('#simulationExample summary').click();
+  const sides = page.locator('.simulation-pair section');
+  await expect(sides).toHaveCount(4);
+  const expectedTexts = [];
+  for (let i = 0; i < 4; i++) {
+    const side = sides.nth(i);
+    expectedTexts.push(await side.locator('textarea').inputValue());
+    await side.locator('[data-copy-format="text"]').click();
+    await expect(side.locator('[role="status"]')).toContainText('text copied.');
+    await side.locator('[data-copy-format="image"]').click();
+    await expect(side.locator('[role="status"]')).toContainText('image copied.');
+  }
+  expect(await page.evaluate(() => window.copiedTexts)).toEqual(expectedTexts);
+  const images = await page.evaluate(() => window.copiedImages);
+  expect(new Set(images).size).toBe(4);
+  const pixels = await page.evaluate(async () => {
+    return Promise.all(window.copiedImages.slice(0, 2).map(async url => {
+      const bitmap = await createImageBitmap(await (await fetch(url)).blob());
+      const canvas = document.createElement('canvas'); canvas.width=bitmap.width; canvas.height=bitmap.height;
+      const ctx=canvas.getContext('2d'); ctx.drawImage(bitmap,0,0);
+      // Cell 80 is blank in the puzzle and filled blue in its solution.
+      const data=ctx.getImageData(498,498,48,48).data;
+      let blue=0;for(let i=0;i<data.length;i+=4)if(data[i+2]>data[i]+50&&data[i+2]>data[i+1]+50)blue++;
+      return {width:bitmap.width,height:bitmap.height,blue};
+    }));
+  });
+  expect(pixels[0]).toEqual({width:564,height:564,blue:0});
+  expect(pixels[1].blue).toBeGreaterThan(0);
+  const fs = require('node:fs');
+  fs.writeFileSync('test-results/triple-copied-solution.png', Buffer.from(images[1].split(',')[1], 'base64'));
+  await page.evaluate(() => window.rejectCopy = true);
+  await sides.first().locator('[data-copy-format="text"]').click();
+  await expect(sides.first().locator('[role="status"]')).toContainText('Could not copy text');
+  await sides.first().locator('[data-copy-format="image"]').click();
+  await expect(sides.first().locator('[role="status"]')).toContainText('Could not copy the image');
+  await expect(sides.first().locator('[data-copy-format="image"]')).toBeEnabled();
+  await page.setViewportSize({width:320,height:568});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
