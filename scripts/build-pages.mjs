@@ -7,6 +7,7 @@ let techniques = await readFile('techniques.html', 'utf8');
 for (const example of examples) {
   techniques = techniques.replace(`<!-- example:${example.id} -->`, renderExample(example));
 }
+const triple = await readFile('triple.html', 'utf8');
 const sitemap = await readFile('sitemap.xml', 'utf8');
 const base = 'https://nahiphog.github.io/double-sudoku/';
 const routes = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(([, url]) => {
@@ -16,11 +17,11 @@ const routes = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(([, url]) => {
 for (const route of routes) {
   const directory = route ? `_site/${route}` : '_site';
   await mkdir(directory, { recursive: true });
-  await writeFile(`${directory}/index.html`, route === 'techniques' ? techniques : html);
+  await writeFile(`${directory}/index.html`, route === 'triple' ? triple : route === 'techniques' ? techniques : html);
 }
 await copyFile('sitemap.xml', '_site/sitemap.xml');
 await copyFile('robots.txt', '_site/robots.txt');
-for (const file of ['hint-solver.js', 'hint-ui.js', 'hint-style.css']) {
+for (const file of ['hint-solver.js', 'hint-ui.js', 'hint-style.css', 'triple-sudoku.js', 'triple-ui.js', 'triple.css']) {
   await copyFile(file, `_site/${file}`);
 }
 await writeFile('_site/.nojekyll', '');
