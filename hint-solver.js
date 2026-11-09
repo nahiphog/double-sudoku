@@ -59,9 +59,86 @@
         if (eliminations.length) return move(`Hidden ${label[size]} (remaining copies)`, `In ${u.name}, the remaining ${counts(ds)} can go only in ${names(cells)}. Those ${size} required copies fill all ${size} cells, so remove every other candidate from these cells.`, cells, [], eliminations);
       }
     }
-    return { status: 'stuck', explanation: 'No move found using singles, forced copies, or subsets of up to four cells. These techniques may not finish every puzzle; no guess has been made.' };
+    return findLocked(values, tiles, excluded) || findFish(values, tiles, excluded) || findForcing(values, tiles, excluded) ||
+      { status: 'stuck', explanation: 'No move found using singles, subsets, locked candidates, fish of up to four lines, or forcing chains of up to six placements. These bounded techniques may not finish every puzzle; no guess has been applied.' };
   }
-  const api = { analyze, nextHint, unitsFor, cellName };
+  const deduction = (technique, explanation, cells, eliminations, extra = {}) => ({ status: 'move', technique, explanation, cells, placements: [], eliminations, ...extra });
+  function findLocked(values, tiles, excluded) {
+    const { candidates: c, units, error } = analyze(values, tiles, excluded);
+    if (error) return null;
+    for (let a = 0; a < units.length; a++) for (let b = 0; b < units.length; b++) {
+      // Only line/region intersections, in both directions.
+      if ((a < 16) === (b < 16)) continue;
+      const source = units[a], target = units[b];
+      for (const d of digits) {
+        const needed = source.remaining[d - 1], capacity = target.remaining[d - 1];
+        if (!needed || needed !== capacity) continue;
+        const cells = source.cells.filter(i => c[i].includes(d));
+        if (!cells.length || !cells.every(i => target.cells.includes(i))) continue;
+        const eliminations = target.cells.filter(i => !source.cells.includes(i) && c[i].includes(d)).map(cell => ({ cell, digit: d }));
+        if (eliminations.length) return deduction(`Locked candidates (${a >= 16 ? 'pointing' : 'claiming'})`, `${source.name} needs ${needed} more ${d}${needed > 1 ? 's' : ''}, all confined to ${names(cells)} in ${target.name}. ${target.name} also needs exactly ${capacity}, so these copies fill its remaining allowance. Remove ${d} from ${names(eliminations.map(e => e.cell))} outside the intersection.`, cells, eliminations);
+      }
+    }
+    return null;
+  }
+  function findFish(values, tiles, excluded) {
+    const { candidates: c, units, error } = analyze(values, tiles, excluded);
+    if (error) return null;
+    for (let size = 2; size <= 4; size++) for (const rows of [true, false]) for (const d of digits) {
+      const bases = units.slice(rows ? 0 : 8, rows ? 8 : 16).filter(u => u.remaining[d - 1] > 0);
+      const covers = units.slice(rows ? 8 : 0, rows ? 16 : 8);
+      for (const selected of combinations(bases, size)) {
+        const cells = selected.flatMap(u => u.cells.filter(i => c[i].includes(d)));
+        const selectedCovers = covers.filter(u => cells.some(i => u.cells.includes(i)));
+        if (selectedCovers.length < 2 || selectedCovers.length > 4) continue;
+        const required = selected.reduce((n, u) => n + u.remaining[d - 1], 0);
+        const capacity = selectedCovers.reduce((n, u) => n + u.remaining[d - 1], 0);
+        if (required !== capacity) continue;
+        const baseCells = new Set(selected.flatMap(u => u.cells));
+        const eliminations = selectedCovers.flatMap(u => u.cells.filter(i => !baseCells.has(i) && c[i].includes(d)).map(cell => ({ cell, digit: d })));
+        if (!eliminations.length) continue;
+        const name = selectedCovers.length === size ? ['', '', 'X-Wing', 'Swordfish', 'Jellyfish'][size] : 'Fish';
+        const counts = us => us.map(u => `${u.name} needs ${u.remaining[d - 1]}`).join('; ');
+        return deduction(`${name} (remaining copies)`, `For digit ${d}: ${counts(selected)} (${required} copies total). All their candidates lie in ${selectedCovers.map(u => u.name).join(', ')}. Those covering units have exactly ${capacity} spaces left for ${d} (${counts(selectedCovers)}). The selected lines fill that capacity, so remove ${d} from ${names(eliminations.map(e => e.cell))} in the other lines.`, cells, eliminations);
+      }
+    }
+    return null;
+  }
+  function findForcing(values, tiles, excluded, maxSteps = 6) {
+    const initial = analyze(values, tiles, excluded);
+    if (initial.error) return null;
+    // One assumption only. Propagate forced placements; never recurse or use
+    // an incomplete search as evidence that a candidate is impossible.
+    for (let cell = 0; cell < 64; cell++) for (const digit of initial.candidates[cell]) {
+      const branch = values.slice(); branch[cell] = digit;
+      const trail = [];
+      for (let step = 0; step <= maxSteps; step++) {
+        const current = analyze(branch, tiles, excluded);
+        if (current.error) {
+          const proof = [`Assume ${cellName(cell)} = ${digit}.`, ...trail.map(t => t.reason), `Contradiction: ${current.error.replace(/ (Correct the entries before asking for a hint|Check your entries)\./, '')}`, `Therefore remove ${digit} from ${cellName(cell)}.`];
+          return deduction('Short forcing chain', proof.join(' '), [cell, ...trail.map(t => t.cell)], [{ cell, digit }], { assumption: { cell, digit }, trail, proof });
+        }
+        if (step === maxSteps) break;
+        let forced;
+        const single = current.candidates.findIndex(ds => ds.length === 1);
+        if (single >= 0) forced = { cell: single, digit: current.candidates[single][0], reason: `${cellName(single)} then has only candidate ${current.candidates[single][0]}; place it.` };
+        if (!forced) for (const u of current.units) {
+          for (const d of digits) {
+            const cells = u.cells.filter(i => current.candidates[i].includes(d)), needed = u.remaining[d - 1];
+            if (needed > 0 && cells.length === needed) {
+              forced = { cell: cells[0], digit: d, reason: `${u.name} needs ${needed} more ${d}${needed > 1 ? 's' : ''} in exactly ${needed} available cells (${names(cells)}); place ${d} at ${cellName(cells[0])}.` };
+              break;
+            }
+          }
+          if (forced) break;
+        }
+        if (!forced) break;
+        branch[forced.cell] = forced.digit; trail.push(forced);
+      }
+    }
+    return null;
+  }
+  const api = { analyze, nextHint, unitsFor, cellName, findLocked, findFish, findForcing };
   if (typeof module !== 'undefined') module.exports = api;
   else root.DoubleSudokuHints = api;
 })(globalThis);

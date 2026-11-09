@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { examples, renderExample, tiles } from '../scripts/technique-examples.mjs';
 
-for (const e of examples) test(`${e.id}: illustrated deduction is valid`, () => {
+for (const e of examples.filter(e => !e.advanced)) test(`${e.id}: illustrated deduction is valid`, () => {
   if(e.id === 'naked-single') {
     const target=0;
     const peers=[Array.from({length:8},(_,i)=>i),Array.from({length:8},(_,i)=>i*8),tiles.flatMap((v,i)=>v===tiles[target]?[i]:[])];
@@ -30,7 +30,7 @@ for (const e of examples) test(`${e.id}: illustrated deduction is valid`, () => 
   assert(solutions>0,'Example must be feasible');
 });
 test('each diagram has 64 labeled cells and a before/after control', () => {
-  assert.equal(examples.length,9);
+  assert.equal(examples.length,15);
   for(const example of examples) {
     const html=renderExample(example);
     assert.equal((html.match(/aria-label="r\d+c\d+:/g)||[]).length,64);

@@ -24,7 +24,13 @@
     const panel = grid.parentElement.querySelector('[data-hint-panel]');
     if (!panel) continue;
     const text = panel.querySelector('[data-hint-message]');
-    text.textContent = s.pending ? `${s.pending.technique ? s.pending.technique + ': ' : ''}${s.pending.explanation}` : s.history.length ? 'Move applied. Ask for the next hint.' : 'Get an explained logical move. Hints use all legal candidates, not your pencil notes. Editing numbers resets previous hint deductions.';
+    text.textContent = s.pending ? s.pending.proof ? 'Short forcing chain: follow the temporary assumption to a contradiction. Only the final candidate removal will be applied.' : `${s.pending.technique ? s.pending.technique + ': ' : ''}${s.pending.explanation}` : s.history.length ? 'Move applied. Ask for the next hint.' : 'Get an explained logical move. Hints use all legal candidates, not your pencil notes. Editing numbers resets previous hint deductions.';
+    let proof = panel.querySelector('.hint-proof');
+    if (!proof) { proof = document.createElement('ol'); proof.className = 'hint-proof'; text.after(proof); }
+    proof.hidden = !s.pending?.proof;
+    proof.replaceChildren(...(s.pending?.proof || []).map(reason => {
+      const li = document.createElement('li'); li.textContent = reason; return li;
+    }));
     panel.querySelector('[data-hint-apply]').disabled = s.pending?.status !== 'move';
     panel.querySelector('[data-hint-candidates]').textContent = s.active ? 'Show my notes' : 'Show solver candidates';
     panel.querySelector('[data-hint-history]').replaceChildren(...s.history.map(move => {

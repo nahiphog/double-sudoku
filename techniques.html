@@ -73,9 +73,9 @@
     <h2 id="start">Start by counting remaining copies</h2>
     <p>A <strong>unit</strong> means a row, column or outlined region. A <strong>candidate</strong> is a digit still possible in an empty cell. Remove a digit from a cell when its row, column or region already contains two copies of that digit, or when a sound earlier deduction excludes it.</p>
     <p>For each unit, calculate <code>remaining copies = 2 − copies already placed</code>. A single placed 1 does not rule out another 1 in the same unit.</p>
-    <p>In the examples, <code>{1,2}</code> means a cell can hold either 1 or 2. Examples describe candidate patterns within one unit, rather than complete puzzles. Coordinates such as <code>r3c5</code> mean row 3, column 5.</p>
+    <p>In the examples, <code>{1,2}</code> means a cell can hold either 1 or 2. Examples describe partial candidate patterns in the relevant units, rather than complete puzzles. Coordinates such as <code>r3c5</code> mean row 3, column 5.</p>
     <ol class="contents">
-      <li><a href="#naked-single">Naked single</a></li><li><a href="#hidden-single">Hidden single</a></li><li><a href="#forced-copies">Two forced copies</a></li><li><a href="#naked-pair">Naked pair</a></li><li><a href="#naked-triple">Naked triple</a></li><li><a href="#naked-quadruple">Naked quadruple</a></li><li><a href="#hidden-pair">Hidden pair</a></li><li><a href="#hidden-triple">Hidden triple</a></li><li><a href="#hidden-quadruple">Hidden quadruple</a></li>
+      <li><a href="#naked-single">Naked single</a></li><li><a href="#hidden-single">Hidden single</a></li><li><a href="#forced-copies">Two forced copies</a></li><li><a href="#naked-pair">Naked pair</a></li><li><a href="#naked-triple">Naked triple</a></li><li><a href="#naked-quadruple">Naked quadruple</a></li><li><a href="#hidden-pair">Hidden pair</a></li><li><a href="#hidden-triple">Hidden triple</a></li><li><a href="#hidden-quadruple">Hidden quadruple</a></li><li><a href="#pointing">Locked candidates: pointing</a></li><li><a href="#claiming">Locked candidates: claiming</a></li><li><a href="#x-wing">Adapted X-Wing</a></li><li><a href="#swordfish">Adapted Swordfish</a></li><li><a href="#jellyfish">Adapted Jellyfish</a></li><li><a href="#forcing-chain">Short forcing chain</a></li>
     </ol>
   </section>
   <section aria-labelledby="placements">
@@ -99,10 +99,28 @@
     <article id="hidden-triple"><h3>8. Hidden triple</h3><p>Three required copies have only three available cells.</p><p class="example"><strong>Example</strong>A region needs one more 1 and two more 2s. Only three cells can hold 1 or 2, though they also have other candidates. Those cells must hold 1,2,2. Remove 3 and 4 from them wherever present.</p><!-- example:hidden-triple --></article>
     <article id="hidden-quadruple"><h3>9. Hidden quadruple</h3><p>Four required copies have only four available cells.</p><p class="example"><strong>Example</strong>A row needs two 1s and two 2s. Only four cells can hold either digit. Those cells must hold 1,1,2,2, so remove their 3 and 4 candidates.</p><p>The hint solver may explain the same elimination using a smaller or complementary naked subset first. A subset containing all four distinct digits has no other digit to eliminate in Double Sudoku.</p><!-- example:hidden-quadruple --></article>
   </section>
+  <section aria-labelledby="intersections">
+    <h2 id="intersections">Locked candidates: fill an intersecting unit’s allowance</h2>
+    <p>When all remaining copies of a digit in one unit are confined to its intersection with another, compare their counts. Only if those forced copies fill the other unit’s entire remaining allowance may you remove the digit elsewhere in that unit.</p>
+    <article id="pointing"><h3>10. Locked candidates: pointing</h3><p>Start in a region and eliminate along a row or column. A region needing two copies can reserve both spaces in a column that also needs two. A region needing one copy cannot by itself fill a column still needing two.</p><!-- example:pointing --></article>
+    <article id="claiming"><h3>11. Locked candidates: claiming</h3><p>Reverse the direction: start in a row or column and eliminate in the region. Check the remaining counts in both units, including any placed digits.</p><!-- example:claiming --></article>
+  </section>
+  <section aria-labelledby="fish">
+    <h2 id="fish">Fish: balance copies across rows and columns</h2>
+    <p>Choose two to four rows and one digit. All candidate positions in those rows must lie within two to four covering columns. Add the copies still required in the chosen rows and compare that with the total remaining capacity of the covering columns. If the totals are equal, remove the digit from other rows in those columns. The same rule works with rows and columns reversed.</p>
+    <p>Count remaining copies, not just lines or candidate cells. If the columns have spare capacity, there is no elimination. With mixed remaining counts, the numbers of chosen rows and covering columns may differ; the hint calls this a Fish.</p>
+    <article id="x-wing"><h3>12. Adapted X-Wing</h3><p>Two selected rows fill the remaining capacity of two columns (or vice versa). Unlike a standard Sudoku X-Wing, two copies in one column can be allowed.</p><!-- example:x-wing --></article>
+    <article id="swordfish"><h3>13. Adapted Swordfish</h3><p>Three selected rows fill the remaining capacity of three columns (or vice versa). Not every intersection must contain the candidate; all candidates in the selected lines must lie in the covering lines.</p><!-- example:swordfish --></article>
+    <article id="jellyfish"><h3>14. Adapted Jellyfish</h3><p>Four selected rows fill the remaining capacity of four columns (or vice versa). The two-copy counts make the same capacity argument valid.</p><!-- example:jellyfish --></article>
+  </section>
+  <section aria-labelledby="chains">
+    <h2 id="chains">Explain a contradiction</h2>
+    <article id="forcing-chain"><h3>15. Short forcing chain</h3><p>Temporarily assume a candidate is true, then follow naked singles, hidden singles and forced copies. If a cell runs out of candidates, a unit exceeds two copies, or too few positions remain for a required digit, the assumption is impossible.</p><p>The hint lists the assumption, each forced placement and the contradiction. Apply move removes only the disproved candidate; temporary placements never become player entries. A branch that reaches the six-placement limit without a contradiction proves nothing and produces no elimination.</p><!-- example:forcing-chain --></article>
+  </section>
   <section aria-labelledby="using">
     <h2 id="using">Use the guide while solving</h2>
     <ol><li>Open a Daily, Archive or Play puzzle and select <strong>Get hint</strong>.</li><li>Read the explanation. Blue outlines identify the pattern; dashed orange outlines mark cells losing candidates.</li><li>Select <strong>Apply move</strong> to place digits or remove candidates. Eliminations can unlock a placement on the next step.</li><li>Review <strong>Applied moves</strong>, or switch between solver candidates and your own notes.</li></ol>
-    <p>Hints start with singles, then forced copies, then subsets of two through four cells. A last empty cell in a unit (“full house”) is covered by a single. Editing numbers resets hint deductions; handwritten notes are not treated as proof.</p>
+    <p>Hints start with singles, then forced copies, then subsets of two through four cells, locked candidates, fish of up to four lines, and finally short forcing chains. A last empty cell in a unit (“full house”) is covered by a single. Editing numbers resets hint deductions; handwritten notes are not treated as proof.</p>
     <p><strong>This is the complete guide to the current hint solver, not an exhaustive list of every possible logical argument.</strong> Some uniquely solvable puzzles need reasoning beyond these techniques. If no move is found, the solver says so and does not guess. The generator checks uniqueness, not whether this technique set can finish a puzzle.</p>
     <a class="return-link" href="/double-sudoku/daily/">Try today’s puzzle →</a>
   </section>
