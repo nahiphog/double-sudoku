@@ -24,6 +24,7 @@ jobs:
       - name: Build static routes
         run: |
           node --test tests/hint-solver.test.cjs
+          node --test tests/technique-examples.test.mjs
           node scripts/build-pages.mjs
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:

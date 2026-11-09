@@ -31,6 +31,34 @@
     .dark button { background: #111; color: #f5f5f5; }
     .dark nav [aria-current] { background: #f5f5f5; color: #111; }
     @media (max-width: 550px) { .contents { columns: 1; } article { padding: 16px; } }
+
+    .technique-figure { margin: 24px 0 0; }
+    .technique-grid { display: grid; grid-template-columns: 20px repeat(8, minmax(0, 1fr)); max-width: 500px; margin: 16px 0; }
+    .diagram-axis { text-align: center; font: 12px/20px system-ui, sans-serif; }
+    .diagram-cell { aspect-ratio: 1; min-width: 0; display: grid; place-items: center; border-right: 1px solid #8d98a5; border-bottom: 1px solid #8d98a5; background: #fff; position: relative; font: 700 clamp(16px, 4vw, 26px) system-ui, sans-serif; }
+    .diagram-right { border-right: 3px solid currentColor; } .diagram-bottom { border-bottom: 3px solid currentColor; }
+    .diagram-top { border-top: 3px solid currentColor; } .diagram-left { border-left: 3px solid currentColor; }
+    .diagram-muted { background: #f3f4f6; color: #6b7280; border-color: #8d98a5; }
+    .diagram-notes { display: grid; grid-template-columns: repeat(2,1fr); width: 100%; height: 100%; padding: 3px; text-align: center; font: 600 clamp(10px, 2.5vw, 15px)/1.2 system-ui, sans-serif; align-items: center; }
+    .diagram-pattern { outline: 3px solid #1666bf; outline-offset: -4px; background: #eaf3ff; }
+    .diagram-removal { box-shadow: inset 0 0 0 3px #b75300; background: #fff3df; }
+    .diagram-removal::after { content: ''; position: absolute; inset: 5px; border: 1px dashed #b75300; pointer-events: none; }
+    .diagram-placement { outline: 3px solid #16733f; outline-offset: -4px; background: #e8f6ee; }
+    .diagram-crossed { color: #b42318; text-decoration: line-through; text-decoration-thickness: 2px; }
+    .diagram-answer { display: none; color: #16733f; }
+    .technique-figure.after .diagram-crossed { visibility: hidden; }
+    .technique-figure.after .diagram-placement .diagram-notes { display: none; }
+    .technique-figure.after .diagram-answer { display: block; }
+    .diagram-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .diagram-legend, .diagram-footnote { font-size: 13px; }
+    .diagram-legend span { display: inline-block; margin-right: 10px; }
+    .dark .diagram-cell { background: #17202c; }
+    .dark .diagram-muted { background: #1c1c1c; color: #aaa; }
+    .dark .diagram-pattern { background: #152e49; outline-color: #80b9ff; }
+    .dark .diagram-removal { background: #382819; box-shadow: inset 0 0 0 3px #ffb568; }
+    .dark .diagram-removal::after { border-color: #ffb568; }
+    .dark .diagram-placement { background: #173525; outline-color: #79dca5; }
+    .dark .diagram-answer { color: #79dca5; } .dark .diagram-crossed { color: #ff9e9e; }
   </style>
 </head>
 <body>
@@ -52,24 +80,24 @@
   </section>
   <section aria-labelledby="placements">
     <h2 id="placements">Place a digit</h2>
-    <article id="naked-single"><h3>1. Naked single</h3><p>If a cell has just one candidate, place that digit.</p><p class="example"><strong>Example</strong>A cell’s row already has two 1s, its column has two 2s, and its region has two 4s. Only 3 remains, so place 3.</p></article>
-    <article id="hidden-single"><h3>2. Hidden single</h3><p>If a unit needs one more copy of a digit and only one empty cell can hold it, that cell must contain the digit. The cell may still have other candidates.</p><p class="example"><strong>Example</strong>A row already has one 2. Only r3c5 can hold the second 2. Place 2 in r3c5.</p></article>
-    <article id="forced-copies"><h3>3. Two forced copies</h3><p>If a unit needs both copies of a digit and exactly two cells can hold it, fill both cells with that digit.</p><p class="example"><strong>Example</strong>A region has no 4s. Its only candidates for 4 are r1c1 and r2c1. Both cells must be 4—even though they share a column, which allows two 4s.</p><p>If two copies are needed but only one cell can hold the digit, the board is contradictory; that is not a hidden single.</p></article>
+    <article id="naked-single"><h3>1. Naked single</h3><p>If a cell has just one candidate, place that digit.</p><p class="example"><strong>Example</strong>A cell’s row already has two 1s, its column has two 2s, and its region has two 4s. Only 3 remains, so place 3.</p><!-- example:naked-single --></article>
+    <article id="hidden-single"><h3>2. Hidden single</h3><p>If a unit needs one more copy of a digit and only one empty cell can hold it, that cell must contain the digit. The cell may still have other candidates.</p><p class="example"><strong>Example</strong>A row already has one 2. Only r3c5 can hold the second 2. Place 2 in r3c5.</p><!-- example:hidden-single --></article>
+    <article id="forced-copies"><h3>3. Two forced copies</h3><p>If a unit needs both copies of a digit and exactly two cells can hold it, fill both cells with that digit.</p><p class="example"><strong>Example</strong>A region has no 4s. Its only candidates for 4 are r1c1 and r2c1. Both cells must be 4—even though they share a column, which allows two 4s.</p><p>If two copies are needed but only one cell can hold the digit, the board is contradictory; that is not a hidden single.</p><!-- example:forced-copies --></article>
   </section>
   <section aria-labelledby="naked">
     <h2 id="naked">Naked subsets: reserve all remaining copies</h2>
     <p>Choose empty cells in one unit and collect their candidate digits. If the unit’s total remaining copies of those digits exactly equals the number of chosen cells, those cells use every remaining copy. Remove those digits from other cells in <strong>that unit</strong>.</p>
     <p>The names below count <strong>cells</strong>, not distinct digits. If the same cells also share another unit, check that unit’s remaining counts separately before eliminating there.</p>
-    <article id="naked-pair"><h3>4. Naked pair</h3><p>Two cells reserve two remaining copies.</p><p class="example"><strong>Example</strong>A row already contains one 1 and one 2. Two empty cells each have {1,2}. The row needs 1 × 1 + 1 × 2, so remove 1 and 2 from its other empty cells.</p><p><strong>Common trap:</strong> if the row still needs two 1s and two 2s, two {1,2} cells do not form this deduction. Four copies are still needed.</p></article>
-    <article id="naked-triple"><h3>5. Naked triple</h3><p>Three cells reserve three remaining copies; repeated digits are allowed.</p><p class="example"><strong>Example</strong>A row already has one 1 and no 2s. Three cells can contain only {1,2}. They must hold 1,2,2 in some order. Remove 1 and 2 from the other empty cells in that row.</p></article>
-    <article id="naked-quadruple"><h3>6. Naked quadruple</h3><p>Four cells reserve four remaining copies.</p><p class="example"><strong>Example</strong>A region has no 1s or 2s. Four of its cells can contain only {1,2}. They must hold 1,1,2,2 in some order. No other cell in that region can be 1 or 2.</p></article>
+    <article id="naked-pair"><h3>4. Naked pair</h3><p>Two cells reserve two remaining copies.</p><p class="example"><strong>Example</strong>A row already contains one 1 and one 2. Two empty cells each have {1,2}. The row needs 1 × 1 + 1 × 2, so remove 1 and 2 from its other empty cells.</p><p><strong>Common trap:</strong> if the row still needs two 1s and two 2s, two {1,2} cells do not form this deduction. Four copies are still needed.</p><!-- example:naked-pair --></article>
+    <article id="naked-triple"><h3>5. Naked triple</h3><p>Three cells reserve three remaining copies; repeated digits are allowed.</p><p class="example"><strong>Example</strong>A row already has one 1 and no 2s. Three cells can contain only {1,2}. They must hold 1,2,2 in some order. Remove 1 and 2 from the other empty cells in that row.</p><!-- example:naked-triple --></article>
+    <article id="naked-quadruple"><h3>6. Naked quadruple</h3><p>Four cells reserve four remaining copies.</p><p class="example"><strong>Example</strong>A region has no 1s or 2s. Four of its cells can contain only {1,2}. They must hold 1,1,2,2 in some order. No other cell in that region can be 1 or 2.</p><!-- example:naked-quadruple --></article>
   </section>
   <section aria-labelledby="hidden">
     <h2 id="hidden">Hidden subsets: reserve the only available cells</h2>
     <p>Choose digits still needed in a unit. Find every empty cell that can hold any of those digits. If those cells exactly match the total number of required copies, they must hold those copies. Remove <strong>other digits from those cells</strong>.</p>
-    <article id="hidden-pair"><h3>7. Hidden pair</h3><p>Two required copies have only two available cells.</p><p class="example"><strong>Example</strong>A column needs one more 1 and one more 2. Only two cells can contain either digit, with candidates {1,2,3} and {1,2,4}. Remove 3 from the first and 4 from the second: they must hold 1 and 2.</p></article>
-    <article id="hidden-triple"><h3>8. Hidden triple</h3><p>Three required copies have only three available cells.</p><p class="example"><strong>Example</strong>A region needs one more 1 and two more 2s. Only three cells can hold 1 or 2, though they also have other candidates. Those cells must hold 1,2,2. Remove 3 and 4 from them wherever present.</p></article>
-    <article id="hidden-quadruple"><h3>9. Hidden quadruple</h3><p>Four required copies have only four available cells.</p><p class="example"><strong>Example</strong>A row needs two 1s and two 2s. Only four cells can hold either digit. Those cells must hold 1,1,2,2, so remove their 3 and 4 candidates.</p><p>The hint solver may explain the same elimination using a smaller or complementary naked subset first. A subset containing all four distinct digits has no other digit to eliminate in Double Sudoku.</p></article>
+    <article id="hidden-pair"><h3>7. Hidden pair</h3><p>Two required copies have only two available cells.</p><p class="example"><strong>Example</strong>A column needs one more 1 and one more 2. Only two cells can contain either digit, with candidates {1,2,3} and {1,2,4}. Remove 3 from the first and 4 from the second: they must hold 1 and 2.</p><!-- example:hidden-pair --></article>
+    <article id="hidden-triple"><h3>8. Hidden triple</h3><p>Three required copies have only three available cells.</p><p class="example"><strong>Example</strong>A region needs one more 1 and two more 2s. Only three cells can hold 1 or 2, though they also have other candidates. Those cells must hold 1,2,2. Remove 3 and 4 from them wherever present.</p><!-- example:hidden-triple --></article>
+    <article id="hidden-quadruple"><h3>9. Hidden quadruple</h3><p>Four required copies have only four available cells.</p><p class="example"><strong>Example</strong>A row needs two 1s and two 2s. Only four cells can hold either digit. Those cells must hold 1,1,2,2, so remove their 3 and 4 candidates.</p><p>The hint solver may explain the same elimination using a smaller or complementary naked subset first. A subset containing all four distinct digits has no other digit to eliminate in Double Sudoku.</p><!-- example:hidden-quadruple --></article>
   </section>
   <section aria-labelledby="using">
     <h2 id="using">Use the guide while solving</h2>
@@ -80,6 +108,15 @@
   </section>
 </main>
 <script>
+  document.querySelectorAll('.diagram-toggle').forEach(button => {
+    button.onclick = () => {
+      const figure = button.closest('.technique-figure');
+      const after = figure.classList.toggle('after');
+      button.setAttribute('aria-pressed', String(after));
+      button.textContent = after ? 'Show before move' : 'Show after move';
+      figure.querySelector('.diagram-state').textContent = after ? 'After move' : 'Before move';
+    };
+  });
   const toggle = document.getElementById('theme');
   function applyTheme(dark) {
     document.body.classList.toggle('dark', dark);
