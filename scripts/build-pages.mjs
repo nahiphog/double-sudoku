@@ -11,7 +11,7 @@ const routes = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(([, url]) => {
 for (const route of routes) {
   const directory = route ? `_site/${route}` : '_site';
   await mkdir(directory, { recursive: true });
-  await writeFile(`${directory}/index.html`, html);
+  await writeFile(`${directory}/index.html`, route === 'techniques' ? await readFile('techniques.html', 'utf8') : html);
 }
 await copyFile('sitemap.xml', '_site/sitemap.xml');
 await copyFile('robots.txt', '_site/robots.txt');

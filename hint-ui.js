@@ -50,7 +50,7 @@
       if (!grid.parentElement.querySelector('[data-hint-panel]')) {
         const panel = document.createElement('section');
         panel.className = 'hint-panel'; panel.dataset.hintPanel = key;
-        panel.innerHTML = '<h3>Step-by-step hints</h3><div class="actions"><button type="button" data-hint-next>Get hint</button><button type="button" data-hint-apply disabled>Apply move</button><button type="button" data-hint-candidates>Show solver candidates</button></div><p data-hint-message role="status" aria-live="polite"></p><p class="play-help">Blue outline: cells explaining the move. Dashed orange outline: cells losing candidates. Small digits show solver candidates while hints are active.</p><details><summary>Applied moves</summary><ol data-hint-history></ol></details>';
+        panel.innerHTML = '<h3>Step-by-step hints</h3><p><a href="/double-sudoku/techniques/">Learn all solving techniques →</a></p><div class="actions"><button type="button" data-hint-next>Get hint</button><button type="button" data-hint-apply disabled>Apply move</button><button type="button" data-hint-candidates>Show solver candidates</button></div><p data-hint-message role="status" aria-live="polite"></p><p class="play-help">Blue outline: cells explaining the move. Dashed orange outline: cells losing candidates. Small digits show solver candidates while hints are active.</p><details><summary>Applied moves</summary><ol data-hint-history></ol></details>';
         grid.after(panel);
         panel.querySelector('[data-hint-next]').onclick = () => {
           const s = session(key); s.active = true;

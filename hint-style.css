@@ -1,5 +1,6 @@
 .hint-panel { margin: 20px 0; padding: 16px; border: 2px solid currentColor; }
 .hint-panel h3 { margin: 0 0 12px; }
+.hint-panel a { color: inherit; text-underline-offset: 3px; }
 .hint-panel .actions { flex-wrap: wrap; }
 .hint-panel button:disabled { opacity: .45; cursor: default; }
 .hint-panel li { margin: 12px 0; line-height: 1.5; }
