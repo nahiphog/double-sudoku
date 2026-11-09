@@ -59,6 +59,9 @@
     .dark .diagram-removal::after { border-color: #ffb568; }
     .dark .diagram-placement { background: #173525; outline-color: #79dca5; }
     .dark .diagram-answer { color: #79dca5; } .dark .diagram-crossed { color: #ff9e9e; }
+    .embedded-example main { padding: 16px; }
+    .embedded-example article { margin: 0; padding: 0; border: 0; }
+    .embedded-example section { margin: 0; }
   </style>
 </head>
 <body>
@@ -144,6 +147,14 @@
   }
   applyTheme(localStorage.getItem('double-sudoku-theme') === 'dark');
   toggle.onclick = () => applyTheme(!document.body.classList.contains('dark'));
+  const exampleId = new URLSearchParams(location.search).get('example');
+  const example = exampleId && document.getElementById(exampleId);
+  if (example && (example.matches('article') || exampleId === 'fish')) {
+    // Keep the original nodes so the before/after controls retain their handlers.
+    const content = exampleId === 'fish' ? example.parentElement : example;
+    document.querySelector('main').replaceChildren(content);
+    document.body.classList.add('embedded-example');
+  }
 </script>
 </body>
 </html>

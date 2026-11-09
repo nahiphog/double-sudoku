@@ -2,6 +2,27 @@
 (() => {
   const engine = DoubleSudokuHints;
   const sessions = new Map();
+  let techniqueDialog;
+  function showTechnique(section, technique, opener) {
+    if (!techniqueDialog) {
+      techniqueDialog = document.createElement('dialog');
+      techniqueDialog.className = 'hint-technique-dialog';
+      techniqueDialog.setAttribute('aria-labelledby', 'hint-technique-title');
+      techniqueDialog.innerHTML = '<header><h2 id="hint-technique-title"></h2><button type="button" autofocus>Close explanation</button></header><iframe title="Technique explanation and interactive grid example"></iframe>';
+      document.body.append(techniqueDialog);
+      techniqueDialog.querySelector('button').onclick = () => techniqueDialog.close();
+      // Escape also works while keyboard focus is inside the example frame.
+      techniqueDialog.querySelector('iframe').addEventListener('load', event => {
+        event.target.contentDocument?.addEventListener('keydown', event => {
+          if (event.key === 'Escape') { event.preventDefault(); techniqueDialog.close(); }
+        });
+      });
+    }
+    techniqueDialog.querySelector('h2').textContent = technique;
+    techniqueDialog.querySelector('iframe').src = `/double-sudoku/techniques/?example=${encodeURIComponent(section)}`;
+    techniqueDialog.onclose = () => opener.focus();
+    techniqueDialog.showModal();
+  }
   function techniqueLink(technique) {
     const section = {
       'Naked single': 'naked-single', 'Hidden single': 'hidden-single',
@@ -13,10 +34,11 @@
       'Fish': 'fish', 'Short forcing chain': 'forcing-chain'
     }[technique?.replace(/ \(remaining copies\)$/, '')];
     if (!section) return null;
-    const link = document.createElement('a');
-    link.href = `/double-sudoku/techniques/#${section}`;
-    link.target = '_blank'; link.rel = 'noopener';
-    link.textContent = `Learn ${technique}: explanation and visual example (opens in a new tab)`;
+    const link = document.createElement('button');
+    link.type = 'button';
+    link.setAttribute('aria-haspopup', 'dialog');
+    link.textContent = `Learn ${technique}: explanation and visual example`;
+    link.onclick = () => showTechnique(section, technique, link);
     return link;
   }
   function state(key) {
