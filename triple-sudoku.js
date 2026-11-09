@@ -18,13 +18,12 @@
     }
     return bad;
   }
-  // A bounded search never reports uniqueness unless its entire search completed.
-  function solve(input, budget = 100000) {
+  // Search without a node limit; two solutions suffice to disprove uniqueness.
+  function solve(input) {
     if (!validInput(input) || conflicts(input).size) return { count: 0, complete: true, solution: null };
     const grid = input.slice(), counts = units.map(unit => [0, ...[1, 2, 3].map(d => unit.filter(i => grid[i] === d).length)]);
-    let count = 0, nodes = 0, complete = true, solution = null;
+    let count = 0, solution = null;
     function visit() {
-      if (++nodes > budget) { complete = false; return; }
       let chosen = -1, choices = null;
       const candidates = new Map();
       for (let i = 0; i < 81; i++) if (!grid[i]) {
@@ -43,11 +42,11 @@
         visit();
         memberships[chosen].forEach(id => counts[id][d]--);
         grid[chosen] = 0;
-        if (count >= 2 || !complete) return;
+        if (count >= 2) return;
       }
     }
     visit();
-    return { count, complete, solution };
+    return { count, complete: true, solution };
   }
   function shuffle(values, random = Math.random) {
     const result = values.slice();
@@ -67,10 +66,12 @@
     for (const i of shuffle(Array.from({ length: 81 }, (_, i) => i), random)) {
       const saved = puzzle[i];
       puzzle[i] = 0;
-      const result = solve(puzzle, 15000);
-      if (!result.complete || result.count !== 1) puzzle[i] = saved;
+      const result = solve(puzzle);
+      if (result.count !== 1) puzzle[i] = saved;
       await pause();
     }
+    // A rejected removal stays non-unique after further removals, so one full
+    // pass is sufficient: every remaining clue is necessary for uniqueness.
     return { puzzle, solution };
   }
   const api = { units, validInput, conflicts, solve, completedGrid, generate };
