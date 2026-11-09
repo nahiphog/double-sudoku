@@ -2,6 +2,23 @@
 (() => {
   const engine = DoubleSudokuHints;
   const sessions = new Map();
+  function techniqueLink(technique) {
+    const section = {
+      'Naked single': 'naked-single', 'Hidden single': 'hidden-single',
+      'Two forced copies': 'forced-copies',
+      'Naked pair': 'naked-pair', 'Naked triple': 'naked-triple', 'Naked quadruple': 'naked-quadruple',
+      'Hidden pair': 'hidden-pair', 'Hidden triple': 'hidden-triple', 'Hidden quadruple': 'hidden-quadruple',
+      'Locked candidates (pointing)': 'pointing', 'Locked candidates (claiming)': 'claiming',
+      'X-Wing': 'x-wing', 'Swordfish': 'swordfish', 'Jellyfish': 'jellyfish',
+      'Fish': 'fish', 'Short forcing chain': 'forcing-chain'
+    }[technique?.replace(/ \(remaining copies\)$/, '')];
+    if (!section) return null;
+    const link = document.createElement('a');
+    link.href = `/double-sudoku/techniques/#${section}`;
+    link.target = '_blank'; link.rel = 'noopener';
+    link.textContent = `Learn ${technique}: explanation and visual example (opens in a new tab)`;
+    return link;
+  }
   function state(key) {
     return key === 'play' ? { values: playValues, givens: playGivens } : dailyEntryState(key);
   }
@@ -31,10 +48,18 @@
     proof.replaceChildren(...(s.pending?.proof || []).map(reason => {
       const li = document.createElement('li'); li.textContent = reason; return li;
     }));
+    let guide = panel.querySelector('[data-hint-guide]');
+    if (!guide) { guide = document.createElement('p'); guide.dataset.hintGuide = ''; proof.after(guide); }
+    const link = techniqueLink(s.pending?.technique);
+    guide.hidden = !link;
+    guide.replaceChildren(...(link ? [link] : []));
     panel.querySelector('[data-hint-apply]').disabled = s.pending?.status !== 'move';
     panel.querySelector('[data-hint-candidates]').textContent = s.active ? 'Show my notes' : 'Show solver candidates';
     panel.querySelector('[data-hint-history]').replaceChildren(...s.history.map(move => {
-      const li = document.createElement('li'); li.textContent = `${move.technique}: ${move.explanation}`; return li;
+      const li = document.createElement('li'); li.textContent = `${move.technique}: ${move.explanation}`;
+      const link = techniqueLink(move.technique);
+      if (link) { const guide = document.createElement('p'); guide.append(link); li.append(guide); }
+      return li;
     }));
     const candidates = engine.analyze(values, tiles, s.excluded).candidates;
     [...grid.children].forEach((cell, i) => {
