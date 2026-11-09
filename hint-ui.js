@@ -8,9 +8,47 @@
       techniqueDialog = document.createElement('dialog');
       techniqueDialog.className = 'hint-technique-dialog';
       techniqueDialog.setAttribute('aria-labelledby', 'hint-technique-title');
-      techniqueDialog.innerHTML = '<header><h2 id="hint-technique-title"></h2><button type="button" autofocus>Close explanation</button></header><iframe title="Technique explanation and interactive grid example"></iframe>';
+      techniqueDialog.setAttribute('aria-modal', 'false');
+      techniqueDialog.innerHTML = '<header><h2 id="hint-technique-title"></h2><button type="button" data-hint-drag title="Drag to move, or use arrow keys" aria-label="Move explanation: drag or use arrow keys">↔ Move</button><button type="button" data-hint-close>Close explanation</button></header><iframe title="Technique explanation and interactive grid example"></iframe>';
       document.body.append(techniqueDialog);
-      techniqueDialog.querySelector('button').onclick = () => techniqueDialog.close();
+      techniqueDialog.querySelector('[data-hint-close]').onclick = () => techniqueDialog.close();
+      const header = techniqueDialog.querySelector('header');
+      function moveTo(left, top) {
+        const rect = techniqueDialog.getBoundingClientRect();
+        techniqueDialog.style.left = `${Math.max(0, Math.min(left, innerWidth - rect.width))}px`;
+        techniqueDialog.style.top = `${Math.max(0, Math.min(top, innerHeight - rect.height))}px`;
+        techniqueDialog.style.right = 'auto';
+      }
+      let drag;
+      header.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || event.target.closest('[data-hint-close]')) return;
+        const rect = techniqueDialog.getBoundingClientRect();
+        drag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+        header.setPointerCapture(event.pointerId);
+        techniqueDialog.classList.add('dragging');
+        event.preventDefault();
+      });
+      header.addEventListener('pointermove', event => {
+        if (drag?.id === event.pointerId) moveTo(drag.left + event.clientX - drag.x, drag.top + event.clientY - drag.y);
+      });
+      function stopDrag() { drag = null; techniqueDialog.classList.remove('dragging'); }
+      header.addEventListener('lostpointercapture', stopDrag);
+      header.addEventListener('pointerup', stopDrag);
+      header.addEventListener('pointercancel', stopDrag);
+      header.querySelector('[data-hint-drag]').addEventListener('keydown', event => {
+        const direction = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+        if (!direction) return;
+        event.preventDefault();
+        const rect = techniqueDialog.getBoundingClientRect(), step = event.shiftKey ? 50 : 20;
+        moveTo(rect.left + direction[0] * step, rect.top + direction[1] * step);
+      });
+      window.addEventListener('resize', () => {
+        if (!techniqueDialog.open) return;
+        const rect = techniqueDialog.getBoundingClientRect(); moveTo(rect.left, rect.top);
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && techniqueDialog.open) techniqueDialog.close();
+      });
       // Escape also works while keyboard focus is inside the example frame.
       techniqueDialog.querySelector('iframe').addEventListener('load', event => {
         event.target.contentDocument?.addEventListener('keydown', event => {
@@ -20,8 +58,10 @@
     }
     techniqueDialog.querySelector('h2').textContent = technique;
     techniqueDialog.querySelector('iframe').src = `/double-sudoku/techniques/?example=${encodeURIComponent(section)}`;
-    techniqueDialog.onclose = () => opener.focus();
-    techniqueDialog.showModal();
+    techniqueDialog.onclose = () => {
+      if (opener.isConnected && (document.activeElement === document.body || techniqueDialog.contains(document.activeElement))) opener.focus();
+    };
+    if (!techniqueDialog.open) techniqueDialog.show();
   }
   function techniqueLink(technique) {
     const section = {
