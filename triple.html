@@ -35,9 +35,13 @@
       <form id="simulationForm" class="actions">
         <label for="simulationTrials">Trials</label>
         <input id="simulationTrials" type="number" min="1" max="1000000" step="1" value="100" required>
+        <label for="simulationThreshold">Show puzzles with at most</label>
+        <input id="simulationThreshold" type="number" min="0" max="81" step="1" value="30" required aria-describedby="simulationThresholdHelp">
+        <span>clues</span>
         <button id="simulationRun" type="submit">Run simulation</button>
         <button id="simulationStop" type="button" disabled>Stop simulation</button>
       </form>
+      <p id="simulationThresholdHelp" class="help">Choose the threshold before running. Every matching puzzle is shown; the histogram and statistics include all completed trials.</p>
       <p id="simulationStatus" role="status" aria-live="polite">Choose a trial count, then run the simulation.</p>
       <progress id="simulationProgress" value="0" max="100" aria-label="Completed trials"></progress>
       <div id="simulationResults" hidden>
@@ -50,8 +54,9 @@
           <table><caption>Completed puzzles by clue count</caption><thead><tr><th scope="col">Clues</th><th scope="col">Puzzles</th><th scope="col">Percent</th></tr></thead><tbody id="simulationTable"></tbody></table>
         </details>
         <details id="simulationExample">
-          <summary id="simulationExampleTitle">Fewest-clue examples</summary>
-          <p class="help">Every puzzle tied for the fewest clues in this run, with its completed grid. Blue numbers fill the blanks. If a lower clue count is found, these examples are replaced by the new minimum.</p>
+          <summary id="simulationExampleTitle">Puzzles at or below the threshold</summary>
+          <p class="help">Every puzzle at or below the chosen clue count, with its completed grid and copy buttons. Blue numbers fill the blanks.</p>
+          <p id="simulationMatches" role="status" aria-live="polite"></p>
           <div id="simulationExamples"></div>
         </details>
       </div>

@@ -3,11 +3,14 @@
   const workerUrl = new URL('triple-simulation-worker.js', document.currentScript.src);
   const get = id => document.getElementById(id);
   let worker = null, frequencies = new Map(), completed = 0, target = 0;
-  let sum = 0, smallest = null, started = 0;
+  let sum = 0, threshold = 30, started = 0;
 
   function render() {
     get('simulationProgress').value = completed;
     get('simulationResults').hidden = completed === 0;
+    const matches = get('simulationExamples').childElementCount;
+    get('simulationExampleTitle').textContent = `Puzzles with at most ${threshold} clues · ${matches} ${matches === 1 ? 'puzzle' : 'puzzles'}`;
+    get('simulationMatches').textContent = matches ? `${matches.toLocaleString()} of ${completed.toLocaleString()} completed puzzles have ${threshold} or fewer clues.` : `No puzzles with ${threshold} or fewer clues found in ${completed.toLocaleString()} completed trials.`;
     if (!completed) return;
     const counts = [...frequencies.keys()].sort((a, b) => a - b);
     const min = counts[0], max = counts[counts.length - 1];
@@ -117,8 +120,9 @@
     const article = document.createElement('article');
     article.className = 'simulation-example';
     article.dataset.trial = trial;
+    article.dataset.clues = clues;
     const title = document.createElement('h4');
-    title.textContent = `Example ${number} · trial ${trial}`;
+    title.textContent = `Example ${number} · ${clues} clues · trial ${trial}`;
     article.append(title);
     const pair = document.createElement('div');
     pair.className = 'simulation-pair';
@@ -140,7 +144,6 @@
     }
     article.append(pair);
     examples.append(article);
-    get('simulationExampleTitle').textContent = `Fewest-clue examples: ${clues} clues · ${number} ${number === 1 ? 'puzzle' : 'puzzles'}`;
   }
 
   function finish(message) {
@@ -149,6 +152,7 @@
     render();
     get('simulationRun').disabled = false;
     get('simulationTrials').disabled = false;
+    get('simulationThreshold').disabled = false;
     get('simulationStop').disabled = true;
     get('simulationStatus').textContent = message;
   }
@@ -157,21 +161,26 @@
     event.preventDefault();
     if (worker) return;
     const trials = Number(get('simulationTrials').value);
+    const chosenThreshold = Number(get('simulationThreshold').value);
     if (!Number.isSafeInteger(trials) || trials < 1 || trials > 1000000) {
       get('simulationStatus').textContent = 'Enter a whole number of trials from 1 to 1,000,000.';
       return;
     }
-    target = trials; completed = 0; sum = 0; smallest = null;
+    if (get('simulationThreshold').value.trim() === '' || !Number.isInteger(chosenThreshold) || chosenThreshold < 0 || chosenThreshold > 81) {
+      get('simulationStatus').textContent = 'Enter a whole-number clue threshold from 0 to 81.';
+      return;
+    }
+    target = trials; completed = 0; sum = 0; threshold = chosenThreshold;
     frequencies = new Map(); started = performance.now();
     get('simulationProgress').max = target;
     get('simulationHistogram').replaceChildren();
     get('simulationTable').replaceChildren();
     get('simulationExamples').replaceChildren();
-    get('simulationExampleTitle').textContent = 'Fewest-clue examples';
     get('simulationExample').open = false;
     render();
     get('simulationRun').disabled = true;
     get('simulationTrials').disabled = true;
+    get('simulationThreshold').disabled = true;
     get('simulationStop').disabled = false;
     get('simulationStatus').textContent = `Simulating 0 of ${target.toLocaleString()} trials…`;
     try {
@@ -183,11 +192,7 @@
           const clues = data.puzzle.filter(Boolean).length;
           completed = data.completed; sum += clues;
           frequencies.set(clues, (frequencies.get(clues) || 0) + 1);
-          if (smallest === null || clues < smallest) {
-            smallest = clues;
-            get('simulationExamples').replaceChildren();
-          }
-          if (clues === smallest) showExample(data.puzzle, data.solution, clues, completed);
+          if (clues <= threshold) showExample(data.puzzle, data.solution, clues, completed);
           render();
           get('simulationStatus').textContent = `Simulating ${completed.toLocaleString()} of ${target.toLocaleString()} trials…`;
         } else if (data.type === 'done') {

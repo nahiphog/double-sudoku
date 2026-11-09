@@ -40,6 +40,7 @@ test('simulation reports completed samples, stops, restarts and preserves play',
   await page.goto('/triple.html');
   await expect(page.locator('#grid')).toHaveAttribute('aria-busy', 'false');
   const originalGrid = await page.locator('#grid').textContent();
+  await page.locator('#simulationThreshold').fill('81');
   await page.locator('#simulationTrials').fill('8');
   await page.locator('#simulationRun').click();
   await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 8 of 8 trials.');
@@ -59,7 +60,7 @@ test('simulation reports completed samples, stops, restarts and preserves play',
     }) };
   }, puzzle);
   expect(verification).toEqual({ unique: true, minimal: true });
-  await expect(page.locator('.simulation-example')).toHaveCount(distribution[0].count);
+  await expect(page.locator('.simulation-example')).toHaveCount(8);
   const pairs = await page.locator('.simulation-example').evaluateAll(examples => examples.map(example => ({
     puzzle: example.querySelector('.simulation-puzzle-string').value,
     solution: example.querySelector('.simulation-solution-string').value,
@@ -73,12 +74,14 @@ test('simulation reports completed samples, stops, restarts and preserves play',
   await page.locator('#simulationTrials').fill('10000');
   await page.locator('#simulationRun').click();
   await expect.poll(async () => Number(await page.locator('#simulationProgress').getAttribute('value'))).toBeGreaterThan(0);
+  await expect(page.locator('#simulationThreshold')).toBeDisabled();
   // Generating a playable puzzle must not disable the independent Stop button.
   await page.locator('#newPuzzle').click();
   await expect(page.locator('#simulationStop')).toBeEnabled();
   await page.locator('#simulationStop').click();
   await expect(page.locator('#simulationStatus')).toContainText('Simulation stopped:');
   await expect(page.locator('#simulationStop')).toBeDisabled();
+  await expect(page.locator('#simulationThreshold')).toBeEnabled();
   const stopped = await page.locator('#simulationProgress').getAttribute('value');
   await page.waitForTimeout(250);
   await expect(page.locator('#simulationProgress')).toHaveAttribute('value', stopped);
@@ -107,7 +110,7 @@ test('simulation validates trials and recovers from a worker load failure', asyn
   await expect(page.locator('#simulationStop')).toBeDisabled();
 });
 
-test('all minimum ties have matching solutions and a new minimum replaces earlier ties', async ({ page }) => {
+test('threshold includes every puzzle at or below it, preserves earlier matches, and resets on rerun', async ({ page }) => {
   await page.route('**/triple-simulation-worker.js', route => route.fulfill({
     contentType: 'application/javascript',
     body: `importScripts('triple-sudoku.js');
@@ -123,23 +126,37 @@ test('all minimum ties have matching solutions and a new minimum replaces earlie
   }));
   await page.goto('/triple.html');
   await page.locator('#simulationTrials').fill('5');
+  await page.locator('#simulationThreshold').fill('40');
   await page.locator('#simulationRun').click();
   await expect(page.locator('#simulationStatus')).toContainText('Simulation complete');
-  await expect(page.locator('.simulation-example')).toHaveCount(2);
-  await expect(page.locator('#simulationExampleTitle')).toHaveText('Fewest-clue examples: 39 clues · 2 puzzles');
-  expect(await page.locator('.simulation-example').evaluateAll(nodes => nodes.map(n => n.dataset.trial))).toEqual(['3', '4']);
-  await expect(page.locator('.simulation-pair .simulation-grid')).toHaveCount(4);
-  await expect(page.locator('.simulation-solution-string')).toHaveCount(2);
-  await expect(page.locator('.simulation-filled')).toHaveCount(84);
+  await expect(page.locator('.simulation-example')).toHaveCount(4);
+  await expect(page.locator('#simulationExampleTitle')).toHaveText('Puzzles with at most 40 clues · 4 puzzles');
+  expect(await page.locator('.simulation-example').evaluateAll(nodes => nodes.map(n => n.dataset.trial))).toEqual(['1', '2', '3', '4']);
+  await expect(page.locator('.simulation-pair .simulation-grid')).toHaveCount(8);
+  await expect(page.locator('.simulation-solution-string')).toHaveCount(4);
+  await expect(page.locator('.simulation-filled')).toHaveCount(166);
+  await expect(page.locator('#simulationMatches')).toHaveText('4 of 5 completed puzzles have 40 or fewer clues.');
+  expect(await page.locator('.simulation-bar-row').evaluateAll(rows => rows.reduce((sum, r) => sum + Number(r.dataset.count), 0))).toBe(5);
   await page.locator('#simulationExample summary').click();
   await page.setViewportSize({ width: 320, height: 568 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.locator('#simulationExample').screenshot({ path: 'test-results/triple-tied-examples.png' });
-  await page.locator('#simulationTrials').fill('1');
+  await page.locator('#simulationThreshold').fill('39');
   await page.locator('#simulationRun').click();
-  await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 1 of 1 trials.');
-  await expect(page.locator('.simulation-example')).toHaveCount(1);
-  await expect(page.locator('#simulationExampleTitle')).toHaveText('Fewest-clue examples: 40 clues · 1 puzzle');
+  await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 5 of 5 trials.');
+  await expect(page.locator('.simulation-example')).toHaveCount(2);
+  await expect(page.locator('#simulationExampleTitle')).toHaveText('Puzzles with at most 39 clues · 2 puzzles');
+  for (const invalid of ['-1', '82', '1.5', '']) {
+    await page.locator('#simulationThreshold').fill(invalid);
+    await page.locator('#simulationRun').click();
+    expect(await page.locator('#simulationThreshold').evaluate(input => input.checkValidity())).toBe(false);
+    await expect(page.locator('.simulation-example')).toHaveCount(2);
+  }
+  await page.locator('#simulationThreshold').fill('0');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 5 of 5 trials.');
+  await expect(page.locator('.simulation-example')).toHaveCount(0);
+  await expect(page.locator('#simulationMatches')).toHaveText('No puzzles with 0 or fewer clues found in 5 completed trials.');
 });
 
 test('each example copies its own puzzle and solution as text and PNG, with failure feedback', async ({ page }) => {
