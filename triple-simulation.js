@@ -34,16 +34,50 @@
     get('simulationTable').replaceChildren(...rows);
   }
 
-  function showExample(puzzle, clues) {
-    get('simulationExampleTitle').textContent = `Fewest-clue example: ${clues} clues`;
-    get('simulationExampleString').value = puzzle.map(n => n || '.').join('');
-    get('simulationExampleGrid').replaceChildren(...puzzle.map((n, i) => {
+  function exampleGrid(values, puzzle, label) {
+    const grid = document.createElement('div');
+    grid.className = 'simulation-grid';
+    grid.setAttribute('aria-label', label);
+    grid.replaceChildren(...values.map((n, i) => {
       const cell = document.createElement('span');
-      cell.className = 'simulation-cell';
+      cell.className = 'simulation-cell' + (n && !puzzle[i] ? ' simulation-filled' : '');
       cell.textContent = n || '';
       cell.setAttribute('aria-label', `Row ${Math.floor(i / 9) + 1}, column ${i % 9 + 1}, ${n || 'empty'}`);
       return cell;
     }));
+    return grid;
+  }
+
+  function showExample(puzzle, solution, clues, trial) {
+    const examples = get('simulationExamples');
+    const number = examples.childElementCount + 1;
+    const article = document.createElement('article');
+    article.className = 'simulation-example';
+    article.dataset.trial = trial;
+    const title = document.createElement('h4');
+    title.textContent = `Example ${number} · trial ${trial}`;
+    article.append(title);
+    const pair = document.createElement('div');
+    pair.className = 'simulation-pair';
+    for (const [values, label, kind] of [[puzzle, 'Dug puzzle', 'puzzle'], [solution, 'Completed grid', 'solution']]) {
+      const side = document.createElement('section');
+      const heading = document.createElement('h5');
+      heading.textContent = label;
+      side.append(heading, exampleGrid(values, puzzle, `${label}, example ${number}`));
+      const fieldLabel = document.createElement('label');
+      const field = document.createElement('textarea');
+      field.id = `simulation-${kind}-${number}`;
+      field.className = `simulation-${kind}-string`;
+      field.readOnly = true; field.rows = 3; field.spellcheck = false;
+      field.value = values.map(n => n || '.').join('');
+      fieldLabel.htmlFor = field.id;
+      fieldLabel.textContent = kind === 'puzzle' ? 'Puzzle string (dots are blanks)' : 'Completed grid string';
+      side.append(fieldLabel, field);
+      pair.append(side);
+    }
+    article.append(pair);
+    examples.append(article);
+    get('simulationExampleTitle').textContent = `Fewest-clue examples: ${clues} clues · ${number} ${number === 1 ? 'puzzle' : 'puzzles'}`;
   }
 
   function finish(message) {
@@ -69,8 +103,8 @@
     get('simulationProgress').max = target;
     get('simulationHistogram').replaceChildren();
     get('simulationTable').replaceChildren();
-    get('simulationExampleGrid').replaceChildren();
-    get('simulationExampleString').value = '';
+    get('simulationExamples').replaceChildren();
+    get('simulationExampleTitle').textContent = 'Fewest-clue examples';
     get('simulationExample').open = false;
     render();
     get('simulationRun').disabled = true;
@@ -86,7 +120,11 @@
           const clues = data.puzzle.filter(Boolean).length;
           completed = data.completed; sum += clues;
           frequencies.set(clues, (frequencies.get(clues) || 0) + 1);
-          if (smallest === null || clues < smallest) { smallest = clues; showExample(data.puzzle, clues); }
+          if (smallest === null || clues < smallest) {
+            smallest = clues;
+            get('simulationExamples').replaceChildren();
+          }
+          if (clues === smallest) showExample(data.puzzle, data.solution, clues, completed);
           render();
           get('simulationStatus').textContent = `Simulating ${completed.toLocaleString()} of ${target.toLocaleString()} trials…`;
         } else if (data.type === 'done') {

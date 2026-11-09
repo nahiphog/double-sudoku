@@ -50,11 +50,9 @@
           <table><caption>Completed puzzles by clue count</caption><thead><tr><th scope="col">Clues</th><th scope="col">Puzzles</th><th scope="col">Percent</th></tr></thead><tbody id="simulationTable"></tbody></table>
         </details>
         <details id="simulationExample">
-          <summary id="simulationExampleTitle">Fewest-clue example</summary>
-          <p class="help">One of the puzzles with the fewest clues found in this run.</p>
-          <div id="simulationExampleGrid" class="simulation-grid" aria-label="Fewest-clue puzzle"></div>
-          <label for="simulationExampleString">Puzzle string (dots are blanks)</label>
-          <textarea id="simulationExampleString" readonly rows="3" spellcheck="false"></textarea>
+          <summary id="simulationExampleTitle">Fewest-clue examples</summary>
+          <p class="help">Every puzzle tied for the fewest clues in this run, with its completed grid. Blue numbers fill the blanks. If a lower clue count is found, these examples are replaced by the new minimum.</p>
+          <div id="simulationExamples"></div>
         </details>
       </div>
     </section>

@@ -48,7 +48,7 @@ test('simulation reports completed samples, stops, restarts and preserves play',
   const mean = distribution.reduce((sum, row) => sum + row.clues * row.count, 0) / 8;
   await expect(page.locator('#simulationSummary')).toContainText(`mean ${mean.toFixed(2)} clues`);
   await expect(page.locator('#simulationProgress')).toHaveAttribute('value', '8');
-  const puzzle = await page.locator('#simulationExampleString').inputValue();
+  const puzzle = await page.locator('.simulation-puzzle-string').first().inputValue();
   expect(puzzle).toMatch(/^[1-3.]{81}$/);
   const verification = await page.evaluate(puzzleString => {
     const puzzle = [...puzzleString].map(c => c === '.' ? 0 : Number(c));
@@ -59,6 +59,16 @@ test('simulation reports completed samples, stops, restarts and preserves play',
     }) };
   }, puzzle);
   expect(verification).toEqual({ unique: true, minimal: true });
+  await expect(page.locator('.simulation-example')).toHaveCount(distribution[0].count);
+  const pairs = await page.locator('.simulation-example').evaluateAll(examples => examples.map(example => ({
+    puzzle: example.querySelector('.simulation-puzzle-string').value,
+    solution: example.querySelector('.simulation-solution-string').value,
+  })));
+  expect(await page.evaluate(pairs => pairs.every(({puzzle, solution}) => {
+    const values = [...solution].map(Number);
+    return values.length === 81 && values.every(n => n >= 1 && n <= 3) && !TripleSudoku.conflicts(values).size &&
+      [...puzzle].every((n, i) => n === '.' || n === solution[i]);
+  }), pairs)).toBe(true);
   await expect(page.locator('#grid')).toHaveText(originalGrid);
   await page.locator('#simulationTrials').fill('10000');
   await page.locator('#simulationRun').click();
@@ -95,4 +105,39 @@ test('simulation validates trials and recovers from a worker load failure', asyn
   await expect(page.locator('#simulationStatus')).toContainText('could not finish');
   await expect(page.locator('#simulationRun')).toBeEnabled();
   await expect(page.locator('#simulationStop')).toBeDisabled();
+});
+
+test('all minimum ties have matching solutions and a new minimum replaces earlier ties', async ({ page }) => {
+  await page.route('**/triple-simulation-worker.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: `importScripts('triple-sudoku.js');
+      onmessage = ({data}) => {
+        const base = TripleSudoku.completedGrid(() => 0.5);
+        [40, 40, 39, 39, 41].slice(0, data.trials).forEach((clues, i) => {
+          const solution = base.map(n => (n + i) % 3 + 1);
+          const puzzle = solution.map((n, j) => j < clues ? n : 0);
+          postMessage({type:'sample', puzzle, solution, completed:i+1});
+        });
+        postMessage({type:'done'});
+      };`,
+  }));
+  await page.goto('/triple.html');
+  await page.locator('#simulationTrials').fill('5');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationStatus')).toContainText('Simulation complete');
+  await expect(page.locator('.simulation-example')).toHaveCount(2);
+  await expect(page.locator('#simulationExampleTitle')).toHaveText('Fewest-clue examples: 39 clues · 2 puzzles');
+  expect(await page.locator('.simulation-example').evaluateAll(nodes => nodes.map(n => n.dataset.trial))).toEqual(['3', '4']);
+  await expect(page.locator('.simulation-pair .simulation-grid')).toHaveCount(4);
+  await expect(page.locator('.simulation-solution-string')).toHaveCount(2);
+  await expect(page.locator('.simulation-filled')).toHaveCount(84);
+  await page.locator('#simulationExample summary').click();
+  await page.setViewportSize({ width: 320, height: 568 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.locator('#simulationExample').screenshot({ path: 'test-results/triple-tied-examples.png' });
+  await page.locator('#simulationTrials').fill('1');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 1 of 1 trials.');
+  await expect(page.locator('.simulation-example')).toHaveCount(1);
+  await expect(page.locator('#simulationExampleTitle')).toHaveText('Fewest-clue examples: 40 clues · 1 puzzle');
 });

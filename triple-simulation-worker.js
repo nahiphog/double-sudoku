@@ -10,8 +10,8 @@ self.onmessage = async ({ data }) => {
   }
   try {
     for (let completed = 1; completed <= data.trials; completed++) {
-      const { puzzle } = await TripleSudoku.generate();
-      self.postMessage({ type: 'sample', puzzle, completed });
+      const { puzzle, solution } = await TripleSudoku.generate();
+      self.postMessage({ type: 'sample', puzzle, solution, completed });
     }
     self.postMessage({ type: 'done' });
   } catch {

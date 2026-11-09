@@ -39,3 +39,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid #1670db; outline-offs
 .simulation-cell:nth-child(n+19):nth-child(-n+27), .simulation-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 3px solid #111; }
 .simulation-cell:nth-child(n+73) { border-bottom: 0; }
 #simulation textarea { display: block; width: 100%; padding: 10px; margin-top: 8px; font: 14px monospace; overflow-wrap: anywhere; resize: vertical; }
+.simulation-example { border-top: 1px solid #aaa; margin-top: 24px; padding-top: 12px; }
+.simulation-example h4 { margin: 8px 0 16px; font-size: 16px; }
+.simulation-example h5 { margin: 0; font-size: 15px; }
+.simulation-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.simulation-pair section { min-width: 0; }
+.simulation-filled { color: #1455c0; }
+@media (max-width: 600px) { .simulation-pair { grid-template-columns: minmax(0, 1fr); } }
