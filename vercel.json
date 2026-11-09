@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/double-sudoku/triple-simulation.js",
+      "destination": "/triple-simulation.js"
+    },
+    {
+      "source": "/double-sudoku/triple-simulation-worker.js",
+      "destination": "/triple-simulation-worker.js"
+    },
+    {
       "source": "/double-sudoku/triple",
       "destination": "/triple.html"
     },

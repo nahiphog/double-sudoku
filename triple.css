@@ -21,3 +21,21 @@ button:focus-visible, a:focus-visible { outline: 3px solid #1670db; outline-offs
 .cell.pencil { font-size: clamp(10px, 2.6vw, 16px); font-weight: 400; }
 .help { font-size: 13px; max-width: 560px; }
 #status { min-height: 26px; }
+#simulation { margin-top: 48px; padding-top: 20px; border-top: 2px solid #111; scroll-margin-top: 20px; }
+#simulation input { width: 120px; padding: 10px; border: 2px solid #111; font: inherit; }
+#simulation progress { width: 100%; accent-color: #111; }
+.simulation-bar-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 115px; align-items: center; gap: 10px; margin: 10px 0; font-size: 14px; }
+.simulation-bar-track { height: 24px; background: #eee; }
+.simulation-bar { display: block; height: 100%; background: #111; }
+#simulation details { margin: 24px 0; }
+#simulation summary { cursor: pointer; font-weight: bold; padding: 8px 0; }
+#simulation table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+#simulation th, #simulation td { border-bottom: 1px solid #aaa; padding: 9px; text-align: right; }
+#simulation caption { text-align: left; margin-bottom: 8px; }
+.simulation-grid { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); border: 3px solid #111; max-width: 400px; margin: 16px 0; }
+.simulation-cell { display: grid; place-items: center; aspect-ratio: 1; border-right: 1px solid #777; border-bottom: 1px solid #777; font: bold 20px system-ui, sans-serif; }
+.simulation-cell:nth-child(3n) { border-right: 3px solid #111; }
+.simulation-cell:nth-child(9n) { border-right: 0; }
+.simulation-cell:nth-child(n+19):nth-child(-n+27), .simulation-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 3px solid #111; }
+.simulation-cell:nth-child(n+73) { border-bottom: 0; }
+#simulation textarea { display: block; width: 100%; padding: 10px; margin-top: 8px; font: 14px monospace; overflow-wrap: anywhere; resize: vertical; }

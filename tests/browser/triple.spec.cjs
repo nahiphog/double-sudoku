@@ -32,3 +32,67 @@ test('Triple Sudoku navigation, play, notes, persistence, reveal and mobile layo
   await expect(page.locator('body')).toHaveAttribute('data-page', 'daily');
   expect(errors).toEqual([]);
 });
+
+test('simulation reports completed samples, stops, restarts and preserves play', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('response', response => { if (response.status() >= 400) errors.push(response.url()); });
+  await page.goto('/triple.html');
+  await expect(page.locator('#grid')).toHaveAttribute('aria-busy', 'false');
+  const originalGrid = await page.locator('#grid').textContent();
+  await page.locator('#simulationTrials').fill('8');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 8 of 8 trials.');
+  const distribution = await page.locator('.simulation-bar-row').evaluateAll(rows => rows.map(row => ({ clues: Number(row.dataset.clues), count: Number(row.dataset.count) })));
+  expect(distribution.reduce((sum, row) => sum + row.count, 0)).toBe(8);
+  const mean = distribution.reduce((sum, row) => sum + row.clues * row.count, 0) / 8;
+  await expect(page.locator('#simulationSummary')).toContainText(`mean ${mean.toFixed(2)} clues`);
+  await expect(page.locator('#simulationProgress')).toHaveAttribute('value', '8');
+  const puzzle = await page.locator('#simulationExampleString').inputValue();
+  expect(puzzle).toMatch(/^[1-3.]{81}$/);
+  const verification = await page.evaluate(puzzleString => {
+    const puzzle = [...puzzleString].map(c => c === '.' ? 0 : Number(c));
+    return { unique: TripleSudoku.solve(puzzle).count === 1, minimal: puzzle.every((n, i) => {
+      if (!n) return true;
+      const removed = puzzle.slice(); removed[i] = 0;
+      return TripleSudoku.solve(removed).count === 2;
+    }) };
+  }, puzzle);
+  expect(verification).toEqual({ unique: true, minimal: true });
+  await expect(page.locator('#grid')).toHaveText(originalGrid);
+  await page.locator('#simulationTrials').fill('10000');
+  await page.locator('#simulationRun').click();
+  await expect.poll(async () => Number(await page.locator('#simulationProgress').getAttribute('value'))).toBeGreaterThan(0);
+  // Generating a playable puzzle must not disable the independent Stop button.
+  await page.locator('#newPuzzle').click();
+  await expect(page.locator('#simulationStop')).toBeEnabled();
+  await page.locator('#simulationStop').click();
+  await expect(page.locator('#simulationStatus')).toContainText('Simulation stopped:');
+  await expect(page.locator('#simulationStop')).toBeDisabled();
+  const stopped = await page.locator('#simulationProgress').getAttribute('value');
+  await page.waitForTimeout(250);
+  await expect(page.locator('#simulationProgress')).toHaveAttribute('value', stopped);
+  await page.locator('#simulationTrials').fill('3');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 3 of 3 trials.');
+  expect(await page.locator('.simulation-bar-row').evaluateAll(rows => rows.reduce((sum, r) => sum + Number(r.dataset.count), 0))).toBe(3);
+  await page.locator('#simulationExample summary').click();
+  await page.setViewportSize({ width: 320, height: 568 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.locator('#simulation').screenshot({ path: 'test-results/triple-simulation-mobile.png' });
+  expect(errors).toEqual([]);
+});
+
+test('simulation validates trials and recovers from a worker load failure', async ({ page }) => {
+  await page.goto('/triple.html');
+  await page.locator('#simulationTrials').fill('1.5');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationRun')).toBeEnabled();
+  expect(await page.locator('#simulationTrials').evaluate(input => input.validity.stepMismatch)).toBe(true);
+  await page.route('**/triple-simulation-worker.js', route => route.abort());
+  await page.locator('#simulationTrials').fill('3');
+  await page.locator('#simulationRun').click();
+  await expect(page.locator('#simulationStatus')).toContainText('could not finish');
+  await expect(page.locator('#simulationRun')).toBeEnabled();
+  await expect(page.locator('#simulationStop')).toBeDisabled();
+});

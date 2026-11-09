@@ -33,7 +33,7 @@ function enter(i, value) {
 }
 async function newPuzzle() {
   busy = true;
-  document.querySelectorAll('button').forEach(button => button.disabled = true);
+  document.querySelectorAll('#playControls button').forEach(button => button.disabled = true);
   $('#grid').setAttribute('aria-busy', 'true');
   $('#status').textContent = 'Generating and checking a unique solution…';
   try {
@@ -44,7 +44,7 @@ async function newPuzzle() {
     $('#status').textContent = 'Could not generate a puzzle. Please try New puzzle again.';
   } finally {
     busy = false;
-    document.querySelectorAll('button').forEach(button => button.disabled = false);
+    document.querySelectorAll('#playControls button').forEach(button => button.disabled = false);
     $('#grid').setAttribute('aria-busy', 'false');
   }
 }
