@@ -22,7 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Build static routes
-        run: node scripts/build-pages.mjs
+        run: |
+          node --test tests/hint-solver.test.cjs
+          node scripts/build-pages.mjs
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: _site

@@ -1,0 +1,67 @@
+(function (root) {
+  'use strict';
+  const digits = [1, 2, 3, 4];
+  const cellName = i => `r${(i >> 3) + 1}c${(i % 8) + 1}`;
+  const names = cells => cells.map(cellName).join(', ');
+  function combinations(items, size, start = 0, prefix = [], out = []) {
+    if (prefix.length === size) out.push(prefix);
+    else for (let i = start; i < items.length; i++) combinations(items, size, i + 1, [...prefix, items[i]], out);
+    return out;
+  }
+  function unitsFor(tiles) {
+    return [
+      ...Array.from({ length: 8 }, (_, r) => ({ name: `row ${r + 1}`, cells: Array.from({ length: 8 }, (_, c) => r * 8 + c) })),
+      ...Array.from({ length: 8 }, (_, c) => ({ name: `column ${c + 1}`, cells: Array.from({ length: 8 }, (_, r) => r * 8 + c) })),
+      ...[...new Set(tiles)].map(region => ({ name: `region ${region}`, cells: tiles.flatMap((v, i) => v === region ? [i] : []) }))
+    ];
+  }
+  function analyze(values, tiles, excluded = Array.from({ length: 64 }, () => [])) {
+    const units = unitsFor(tiles).map(unit => ({ ...unit, remaining: digits.map(d => 2 - unit.cells.filter(i => values[i] === d).length) }));
+    const candidates = values.map((value, i) => value ? [] : digits.filter(d =>
+      !excluded[i]?.includes(d) && units.filter(u => u.cells.includes(i)).every(u => u.remaining[d - 1] > 0)));
+    const error = units.find(u => u.remaining.some(n => n < 0));
+    if (error) return { candidates, error: `${error.name} contains more than two copies of a digit. Correct the entries before asking for a hint.` };
+    const empty = values.findIndex((v, i) => !v && !candidates[i].length);
+    if (empty !== -1) return { candidates, error: `${cellName(empty)} has no legal candidate. Check your entries.` };
+    for (const u of units) for (const d of digits) {
+      if (u.cells.filter(i => candidates[i].includes(d)).length < u.remaining[d - 1])
+        return { candidates, error: `${u.name} has too few available cells for its remaining ${d}s. Check your entries.` };
+    }
+    return { candidates, units };
+  }
+  function nextHint(values, tiles, excluded) {
+    const { candidates: c, units, error } = analyze(values, tiles, excluded);
+    if (error) return { status: 'contradiction', explanation: error };
+    if (values.every(Boolean)) return { status: 'solved', explanation: 'Solved! Every row, column and region contains two copies of each digit.' };
+    const move = (technique, explanation, cells, placements = [], eliminations = []) => ({ status: 'move', technique, explanation, cells, placements, eliminations });
+    const single = c.findIndex(ds => ds.length === 1);
+    if (single !== -1) return move('Naked single', `${cellName(single)} has only one remaining candidate: ${c[single][0]}. Place ${c[single][0]}. Other digits are ruled out by completed two-copy counts or earlier deductions.`, [single], [{ cell: single, digit: c[single][0] }]);
+    for (const u of units) for (const d of digits) {
+      const count = u.remaining[d - 1], cells = u.cells.filter(i => c[i].includes(d));
+      if (count > 0 && cells.length === count) return move(count === 1 ? 'Hidden single' : 'Two forced copies', `${u.name} needs ${count} more ${d}${count > 1 ? 's' : ''}, and only ${names(cells)} can hold ${d}. ${count === 1 ? 'Fill that cell' : 'Fill both cells'} with ${d}.`, cells, cells.map(cell => ({ cell, digit: d })));
+    }
+    const label = ['', '', 'pair', 'triple', 'quadruple'];
+    for (let size = 2; size <= 4; size++) for (const u of units) {
+      const empty = u.cells.filter(i => !values[i]);
+      const counts = ds => ds.map(d => `${u.remaining[d - 1]} × ${d}`).join(' + ');
+      for (const cells of combinations(empty, size)) {
+        const ds = [...new Set(cells.flatMap(i => c[i]))].sort();
+        if (ds.reduce((n, d) => n + u.remaining[d - 1], 0) !== size) continue;
+        const eliminations = empty.filter(i => !cells.includes(i)).flatMap(cell => c[cell].filter(d => ds.includes(d)).map(digit => ({ cell, digit })));
+        if (eliminations.length) return move(`Naked ${label[size]} (remaining copies)`, `In ${u.name}, ${names(cells)} can contain only ${ds.join(', ')}. This unit still needs ${counts(ds)}: exactly ${size} copies for ${size} cells. These cells use every remaining copy, so remove ${ds.join(', ')} from the other empty cells in this unit.`, cells, [], eliminations);
+      }
+      for (let mask = 1; mask < 15; mask++) {
+        const ds = digits.filter(d => mask & (1 << (d - 1)));
+        if (ds.some(d => u.remaining[d - 1] === 0) || ds.reduce((n, d) => n + u.remaining[d - 1], 0) !== size) continue;
+        const cells = empty.filter(i => c[i].some(d => ds.includes(d)));
+        if (cells.length !== size) continue;
+        const eliminations = cells.flatMap(cell => c[cell].filter(d => !ds.includes(d)).map(digit => ({ cell, digit })));
+        if (eliminations.length) return move(`Hidden ${label[size]} (remaining copies)`, `In ${u.name}, the remaining ${counts(ds)} can go only in ${names(cells)}. Those ${size} required copies fill all ${size} cells, so remove every other candidate from these cells.`, cells, [], eliminations);
+      }
+    }
+    return { status: 'stuck', explanation: 'No move found using singles, forced copies, or subsets of up to four cells. These techniques may not finish every puzzle; no guess has been made.' };
+  }
+  const api = { analyze, nextHint, unitsFor, cellName };
+  if (typeof module !== 'undefined') module.exports = api;
+  else root.DoubleSudokuHints = api;
+})(globalThis);

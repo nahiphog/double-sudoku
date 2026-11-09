@@ -15,5 +15,8 @@ for (const route of routes) {
 }
 await copyFile('sitemap.xml', '_site/sitemap.xml');
 await copyFile('robots.txt', '_site/robots.txt');
+for (const file of ['hint-solver.js', 'hint-ui.js', 'hint-style.css']) {
+  await copyFile(file, `_site/${file}`);
+}
 await writeFile('_site/.nojekyll', '');
 console.log(`Built ${routes.length} pages.`);

@@ -1,0 +1,11 @@
+.hint-panel { margin: 20px 0; padding: 16px; border: 2px solid currentColor; }
+.hint-panel h3 { margin: 0 0 12px; }
+.hint-panel .actions { flex-wrap: wrap; }
+.hint-panel button:disabled { opacity: .45; cursor: default; }
+.hint-panel li { margin: 12px 0; line-height: 1.5; }
+.hint-candidates { font: 600 clamp(10px, 1.7vw, 16px) system-ui, sans-serif; white-space: normal; color: #1455c0; padding: 2px; }
+.hint-source { outline: 3px solid #1674db; outline-offset: -5px; }
+.hint-target { outline: 3px dashed #b75b00; outline-offset: -5px; }
+.dark .hint-candidates { color: #9bc7ff; }
+.dark .hint-source { outline-color: #9bc7ff; }
+.dark .hint-target { outline-color: #ffb869; }
