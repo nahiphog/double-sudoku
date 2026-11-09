@@ -1,0 +1,29 @@
+html { -webkit-text-size-adjust: 100%; }
+body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+button, a { touch-action: manipulation; }
+button:focus-visible, a:focus-visible { outline: 3px solid #246ad3; outline-offset: 3px; }
+.actions { flex-wrap: wrap; }
+.theme-toggle { top: calc(12px + env(safe-area-inset-top)); right: calc(12px + env(safe-area-inset-right)); width: 44px; height: 44px; }
+.save-warning { color: #a72b16; border: 2px solid currentColor; padding: 10px; }
+.grid > button.cell { padding: 0; min-width: 0; min-height: 0; border-radius: 0; font-family: system-ui,sans-serif; }
+@media (max-width: 680px) {
+  main { padding: 64px 14px 24px; width: 100%; }
+  h1 { font-size: clamp(26px, 8vw, 42px); line-height: 1.15; overflow-wrap: anywhere; }
+  .card { padding: 12px; min-width: 0; }
+  nav { gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding: 4px 0; }
+  nav a { min-height: 44px; display: flex; align-items: center; flex-shrink: 0; white-space: nowrap; }
+  button, .actions button, .play-controls button { min-height: 44px; }
+  .play-controls { gap: 6px; }
+  .play-controls button { padding: 10px 12px; }
+  .play-cell, .cell, .builder-cell { min-height: 0; min-width: 0; }
+  .play-cell { padding: 0; font-size: clamp(18px, 6vw, 28px); }
+  .play-notes { padding: 2px; font-size: 12px; }
+  .string-input { font-size: 16px; }
+  .daily-calendar { gap: 3px; }
+  .calendar-day { min-height: 36px; font-size: 14px; }
+  .daily-modal { padding: 12px; }
+  .daily-modal-card { padding: 48px 12px 12px; }
+  .histogram { overflow-x: auto; }
+  .histogram-bars { min-width: 420px; }
+  .hint-panel { overflow-wrap: anywhere; }
+}

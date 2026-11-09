@@ -1,0 +1,6 @@
+{
+  "appId": "com.nahiphog.doublesudoku",
+  "appName": "Double Sudoku",
+  "webDir": "dist",
+  "ios": { "contentInset": "never" }
+}

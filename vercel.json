@@ -1,3 +1,28 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/double-sudoku/triple",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple-sudoku.js",
+      "destination": "/triple-sudoku.js"
+    },
+    {
+      "source": "/double-sudoku/triple-ui.js",
+      "destination": "/triple-ui.js"
+    },
+    {
+      "source": "/double-sudoku/triple.css",
+      "destination": "/triple.css"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

@@ -1,0 +1,63 @@
+# Setup: CODEMAGIC.md. Credentials belong in Codemagic, never in this file.
+# No push/PR triggers: start this upload workflow manually in Codemagic.
+workflows:
+  ios-testflight:
+    name: Double Sudoku - TestFlight upload
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: double-sudoku-apple
+    environment:
+      node: 22
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.nahiphog.doublesudoku
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+        # Increase this if a previous pipeline uploaded higher build numbers.
+        BUILD_NUMBER_OFFSET: 0
+    scripts:
+      - name: Install locked dependencies and test puzzle logic
+        script: |
+          set -euo pipefail
+          npm ci
+          npm test
+      - name: Build offline assets and sync Capacitor
+        script: |
+          set -euo pipefail
+          npm run ios:sync
+      - name: Set release version and build number
+        script: |
+          set -euo pipefail
+          [[ "$PROJECT_BUILD_NUMBER" =~ ^[0-9]+$ ]]
+          [[ "$BUILD_NUMBER_OFFSET" =~ ^[0-9]+$ ]]
+          RELEASE_BUILD_NUMBER=$((PROJECT_BUILD_NUMBER + BUILD_NUMBER_OFFSET))
+          APP_VERSION=$(node -p "require('./package.json').version")
+          [[ "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          cd ios/App
+          agvtool new-marketing-version "$APP_VERSION"
+          agvtool new-version -all "$RELEASE_BUILD_NUMBER"
+      - name: Apply stored App Store signing profile
+        script: |
+          set -euo pipefail
+          xcode-project use-profiles
+      - name: Archive and export signed IPA
+        script: |
+          set -euo pipefail
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --config Release
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/xcarchive/*.xcarchive/dSYMs/**/*.dSYM
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        # Upload is enough for internal TestFlight testing. These flags control
+        # review submissions, not whether the IPA is uploaded to Apple.
+        submit_to_testflight: false
+        submit_to_app_store: false
