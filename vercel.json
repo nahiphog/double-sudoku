@@ -1,6 +1,78 @@
 {
   "rewrites": [
     {
+      "source": "/double-sudoku/triple/daily",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/daily/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/archive",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/archive/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/generate",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/generate/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/simulation",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/simulation/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/verify",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/verify/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/play",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/play/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/walkthrough",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/walkthrough/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/techniques",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/triple/techniques/",
+      "destination": "/triple.html"
+    },
+    {
+      "source": "/double-sudoku/site-nav.js",
+      "destination": "/site-nav.js"
+    },
+    {
+      "source": "/double-sudoku/site-shell.css",
+      "destination": "/site-shell.css"
+    },
+    {
       "source": "/double-sudoku/triple-hints.js",
       "destination": "/triple-hints.js"
     },

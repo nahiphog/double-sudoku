@@ -6,7 +6,7 @@ test('walkthrough previews, applies, undoes and restarts deductions without edit
   const saved={puzzle,solution,values:puzzle.slice(),notes};
   await page.addInitScript(saved=>localStorage.setItem('triple-sudoku-progress-v1',JSON.stringify(saved)),saved);
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(r.url());});
-  await page.goto('/triple.html');
+  await page.goto('/triple.html?route=walkthrough');
   await expect(page.locator('#walkStart')).toBeEnabled();
   await page.locator('#walkStart').click();
   await expect(page.locator('.walk-cell')).toHaveCount(81);
@@ -37,14 +37,17 @@ test('walkthrough previews, applies, undoes and restarts deductions without edit
   await expect(page.locator('#walkCount')).toContainText('0 steps applied');
   await expect(page.locator('#walkSteps li')).toHaveCount(0);
   await page.locator('#walkNext').click();
+  await page.locator('[data-nav="play"]').click();
+  await expect(page.locator('#grid')).toHaveAttribute('aria-busy','false');
   await page.locator('#newPuzzle').click();
   await expect(page.locator('#grid')).toHaveAttribute('aria-busy','false');
+  await page.locator('[data-nav="walkthrough"]').click();
   await expect(page.locator('#walkContent')).toBeHidden();
   expect(errors).toEqual([]);
 });
 
 test('walkthrough reports worker failure and permits retry',async({page})=>{
-  await page.goto('/triple.html');await expect(page.locator('#walkStart')).toBeEnabled();
+  await page.goto('/triple.html?route=walkthrough');await expect(page.locator('#walkStart')).toBeEnabled();
   await page.locator('#walkStart').click();
   await page.route('**/triple-hint-worker.js',route=>route.abort());
   await page.locator('#walkNext').click();

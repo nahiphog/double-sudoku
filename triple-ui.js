@@ -1,91 +1,52 @@
 'use strict';
-const engine = TripleSudoku;
-const $ = selector => document.querySelector(selector);
-const storageKey = 'triple-sudoku-progress-v1';
-const generationWorkerUrl = new URL('triple-worker.js', document.currentScript.src);
-let state, digit = 1, notesMode = false, revealed = false, busy = false;
-function save() { try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {} }
-function render() {
-  TripleWalkthrough.load(state.puzzle);
-  const focused = document.activeElement?.dataset.cell;
-  const values = revealed ? state.solution : state.values;
-  const bad = engine.conflicts(values);
-  $('#grid').replaceChildren(...values.map((value, i) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.dataset.cell = i;
-    button.className = 'cell' + (state.puzzle[i] ? ' given' : '') + (bad.has(i) ? ' wrong' : '') + (!value && state.notes[i].length ? ' pencil' : '');
-    button.textContent = value || state.notes[i].join(' ');
-    button.setAttribute('aria-label', `Row ${Math.floor(i / 9) + 1}, column ${i % 9 + 1}, ${value || 'empty'}${state.puzzle[i] ? ', given' : ''}${!value && state.notes[i].length ? ', notes ' + state.notes[i].join(', ') : ''}${bad.has(i) ? ', conflict' : ''}`);
-    button.setAttribute('aria-disabled', String(!!state.puzzle[i] || revealed));
-    return button;
-  }));
-  if (focused !== undefined) $(`[data-cell="${focused}"]`)?.focus();
-  $('#reveal').textContent = revealed ? 'Hide solution' : 'Show solution';
-  $('#status').textContent = revealed ? 'Solution shown. Hide it to continue your puzzle.' : bad.size ? 'There is a conflict: each number may appear only three times per row, column and box.' : values.every(Boolean) ? 'Solved! Every row, column and box contains three of each number.' : `${state.puzzle.filter(Boolean).length} clues · unique solution · progress saved on this device`;
+const engine=TripleSudoku,$=selector=>document.querySelector(selector),site=SudokuSite,route=site.page;
+const generationWorkerUrl=new URL('triple-worker.js',document.currentScript.src);
+const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today=dateKey(new Date()),selectedDate=site.date.replaceAll('/','-');
+const validDate=text=>/^\d{4}-\d{2}-\d{2}$/.test(text)&&dateKey(new Date(text+'T12:00:00'))===text&&text<=today;
+const daily=route==='daily'||route==='archive'&&validDate(selectedDate),puzzleDate=route==='daily'?today:selectedDate;
+if(daily&&route==='archive')document.documentElement.dataset.archivePuzzle='true';
+const storageKey=daily?`triple-sudoku-daily-v1:${puzzleDate}`:route==='generate'?'triple-sudoku-generated-v1':'triple-sudoku-progress-v1';
+let state,digit=1,notesMode=false,revealed=false,busy=false;const workers=new Set();
+const titles={daily:'Daily Triple Sudoku',archive:daily?'Archived Triple Sudoku':'Triple Sudoku archive',generate:'Generate Triple Sudoku',play:'Play Triple Sudoku',walkthrough:'Triple Sudoku walkthrough',simulation:'Triple Sudoku simulation',verify:'Verify Triple Sudoku',techniques:'Triple Sudoku techniques'};
+$('#routeTitle').textContent=titles[route]||'Triple Sudoku';
+$('#routeDescription').textContent={daily:'A repeatable puzzle for each local date. Every row, column and 3×3 box contains three copies of 1, 2 and 3.',archive:'Browse date-based puzzles, with progress saved separately for each date.',generate:'Create a unique puzzle, copy its grids, or open it for play.',play:'Enter numbers and notes, or load your own uniquely solvable puzzle.',walkthrough:'Follow explained deductions for your current puzzle, without changing your playing entries.',simulation:'Compare the clue counts produced by single-cell and dual-cell digging.',verify:'Check an 81-cell puzzle for contradictions, uniqueness, or multiple solutions.',techniques:'Learn deductions based on the remaining copies of each digit.'}[route]||'';
+$('#techniquesWalkLink').href=site.href('triple','walkthrough');
+function request(data){return new Promise((resolve,reject)=>{const worker=new Worker(generationWorkerUrl);workers.add(worker);const close=()=>{worker.terminate();workers.delete(worker);};worker.onmessage=({data})=>{close();data.type==='result'?resolve(data):reject(new Error('Operation failed'));};worker.onerror=event=>{event.preventDefault();close();reject(new Error('Could not load the puzzle engine'));};worker.postMessage(data);});}
+function store(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}
+function save(){store(storageKey,state);}
+function walkthroughSource(){if(state)store('triple-walkthrough-source-v1',{puzzle:state.puzzle,solution:state.solution});}
+function render(){
+ TripleWalkthrough.load(state.puzzle);walkthroughSource();
+ if(route==='generate'){$('#generateOutput').replaceChildren(TripleDisplay.createPair(state.puzzle,state.solution,1));$('#generatePlay').disabled=$('#generateWalkthrough').disabled=false;$('#generateStatus').textContent=`${state.puzzle.filter(Boolean).length} clues · unique solution · ${state.mode==='dual'?'dual-cell, pairs only; no further pair can be removed':'single-cell; no further clue can be removed'}`;return;}
+ const focused=document.activeElement?.dataset.cell,values=revealed?state.solution:state.values,bad=engine.conflicts(values);
+ $('#grid').replaceChildren(...values.map((value,i)=>{const button=document.createElement('button');button.type='button';button.dataset.cell=i;button.className='cell'+(state.puzzle[i]?' given':'')+(bad.has(i)?' wrong':'')+(!value&&state.notes[i].length?' pencil':'');button.textContent=value||state.notes[i].join(' ');button.setAttribute('aria-label',`Row ${Math.floor(i/9)+1}, column ${i%9+1}, ${value||'empty'}${state.puzzle[i]?', given':''}${!value&&state.notes[i].length?', notes '+state.notes[i].join(', '):''}${bad.has(i)?', conflict':''}`);button.setAttribute('aria-disabled',String(!!state.puzzle[i]||revealed));return button;}));
+ if(focused!==undefined)$(`[data-cell="${focused}"]`)?.focus();$('#reveal').textContent=revealed?'Hide solution':'Show solution';
+ $('#status').textContent=revealed?'Solution shown. Hide it to continue your puzzle.':bad.size?'There is a conflict: each number may appear only three times per row, column and box.':values.every(Boolean)?'Solved! Every row, column and box contains three of each number.':`${state.puzzle.filter(Boolean).length} clues · unique solution · ${state.mode==='dual'?'dual-cell · ':''}progress saved on this device`;
+ if(daily){$('#dailyDate').hidden=false;$('#dailyDate').textContent=puzzleDate;}
 }
-function enter(i, value) {
-  if (busy || revealed || state.puzzle[i]) return;
-  if (notesMode && value) {
-    if (state.values[i]) return;
-    const notes = state.notes[i];
-    state.notes[i] = notes.includes(value) ? notes.filter(n => n !== value) : [...notes, value].sort();
-  } else { state.values[i] = value; state.notes[i] = []; }
-  save(); render();
-}
-async function newPuzzle() {
-  busy = true;
-  $('#digMode').disabled = true;
-  document.querySelectorAll('#playControls button').forEach(button => button.disabled = true);
-  $('#grid').setAttribute('aria-busy', 'true');
-  $('#status').textContent = 'Generating and checking a unique solution…';
-  try {
-    const generated = await new Promise((resolve, reject) => {
-      const worker = new Worker(generationWorkerUrl);
-      worker.onmessage = ({data}) => { worker.terminate(); data.type === 'result' ? resolve(data) : reject(new Error('Generation failed')); };
-      worker.onerror = () => { worker.terminate(); reject(new Error('Generation failed')); };
-      worker.postMessage({ type: 'generate', mode: $('#digMode').value });
-    });
-    state = { ...generated, values: generated.puzzle.slice(), notes: Array.from({ length: 81 }, () => []) };
-    revealed = false; save(); render();
-  } catch {
-    $('#status').textContent = 'Could not generate a puzzle. Please try New puzzle again.';
-  } finally {
-    busy = false;
-    $('#digMode').disabled = false;
-    document.querySelectorAll('#playControls button').forEach(button => button.disabled = false);
-    $('#grid').setAttribute('aria-busy', 'false');
-  }
-}
-$('#newPuzzle').onclick = newPuzzle;
-$('#reset').onclick = () => { if (!state) return; state.values = state.puzzle.slice(); state.notes = Array.from({ length: 81 }, () => []); revealed = false; save(); render(); };
-$('#reveal').onclick = () => { if (state) { revealed = !revealed; render(); } };
-document.querySelectorAll('[data-digit]').forEach(button => button.onclick = () => {
-  digit = Number(button.dataset.digit);
-  document.querySelectorAll('[data-digit]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.digit) === digit)));
-});
-$('#notes').onclick = () => { notesMode = !notesMode; $('#notes').setAttribute('aria-pressed', String(notesMode)); };
-$('#grid').onclick = event => { const cell = event.target.closest('[data-cell]'); if (cell) enter(Number(cell.dataset.cell), digit); };
-$('#grid').onkeydown = event => {
-  const cell = event.target.closest('[data-cell]');
-  if (!cell) return;
-  const i = Number(cell.dataset.cell);
-  if (/^[1-3]$/.test(event.key) || ['Backspace', 'Delete', '0'].includes(event.key)) {
-    event.preventDefault(); enter(i, /^[1-3]$/.test(event.key) ? Number(event.key) : 0);
-  }
-  const offset = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -9, ArrowDown: 9 }[event.key];
-  if (offset) { event.preventDefault(); $(`[data-cell="${Math.max(0, Math.min(80, i + offset))}"]`).focus(); }
-};
-$('#copy').onclick = async () => {
-  if (!state) return;
-  try { await navigator.clipboard.writeText(state.puzzle.map(n => n || '.').join('')); $('#status').textContent = 'Puzzle copied: 81 cells, with dots for blanks.'; }
-  catch { $('#status').textContent = 'Clipboard access is unavailable in this browser.'; }
-};
-try {
-  const saved = JSON.parse(localStorage.getItem(storageKey));
-  if (saved && engine.validInput(saved.puzzle) && engine.validInput(saved.values) && engine.validInput(saved.solution) && saved.solution.every(Boolean) && !engine.conflicts(saved.solution).size && saved.puzzle.every((n, i) => !n || n === saved.solution[i] && saved.values[i] === n) && Array.isArray(saved.notes) && saved.notes.length === 81 && saved.notes.every(a => Array.isArray(a) && a.every(n => [1, 2, 3].includes(n)))) {
-    const result = engine.solve(saved.puzzle);
-    if (result.complete && result.count === 1) state = saved;
-  }
-} catch {}
-if (state) { render(); $('#grid').setAttribute('aria-busy', 'false'); } else newPuzzle();
+function fresh(result){return {...result,values:result.puzzle.slice(),notes:Array.from({length:81},()=>[])};}
+function enter(i,value){if(busy||revealed||!state||state.puzzle[i])return;if(notesMode&&value){if(state.values[i])return;const notes=state.notes[i];state.notes[i]=notes.includes(value)?notes.filter(n=>n!==value):[...notes,value].sort();}else{state.values[i]=value;state.notes[i]=[];}save();render();}
+async function newPuzzle(){if(busy)return;busy=true;$('#digMode').disabled=$('#generateMode').disabled=$('#generateNew').disabled=true;document.querySelectorAll('#playControls button').forEach(b=>b.disabled=true);$('#grid').setAttribute('aria-busy','true');$('#status').textContent=$('#generateStatus').textContent='Generating and checking a unique solution…';try{const mode=daily?'single':route==='generate'?$('#generateMode').value:$('#digMode').value;state=fresh(await request({type:'generate',mode,...(daily?{seed:'triple-daily-v1:'+puzzleDate}:{})}));revealed=false;save();render();$('#pageNotice').textContent='';}catch{$('#pageNotice').textContent='Could not generate a puzzle. Reload the page or try again.';}finally{busy=false;$('#digMode').disabled=$('#generateMode').disabled=$('#generateNew').disabled=false;document.querySelectorAll('#playControls button').forEach(b=>b.disabled=false);$('#grid').setAttribute('aria-busy','false');}}
+$('#newPuzzle').onclick=$('#generateNew').onclick=newPuzzle;
+$('#reset').onclick=()=>{if(!state)return;state.values=state.puzzle.slice();state.notes=Array.from({length:81},()=>[]);revealed=false;save();render();};
+$('#reveal').onclick=()=>{if(state){revealed=!revealed;render();}};
+document.querySelectorAll('[data-digit]').forEach(button=>button.onclick=()=>{digit=Number(button.dataset.digit);document.querySelectorAll('[data-digit]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.digit)===digit)));});
+$('#notes').onclick=()=>{notesMode=!notesMode;$('#notes').setAttribute('aria-pressed',String(notesMode));};
+$('#grid').onclick=e=>{const cell=e.target.closest('[data-cell]');if(cell)enter(Number(cell.dataset.cell),digit);};
+$('#grid').onkeydown=e=>{const cell=e.target.closest('[data-cell]');if(!cell)return;const i=Number(cell.dataset.cell);if(/^[1-3]$/.test(e.key)||['Backspace','Delete','0'].includes(e.key)){e.preventDefault();enter(i,/^[1-3]$/.test(e.key)?Number(e.key):0);}const offset={ArrowLeft:-1,ArrowRight:1,ArrowUp:-9,ArrowDown:9}[e.key];if(offset){e.preventDefault();$(`[data-cell="${Math.max(0,Math.min(80,i+offset))}"]`).focus();}};
+$('#copy').onclick=async()=>{if(!state)return;try{await navigator.clipboard.writeText(state.puzzle.map(n=>n||'.').join(''));$('#status').textContent='Puzzle copied: 81 cells, with dots for blanks.';}catch{$('#status').textContent='Clipboard access is unavailable in this browser.';}};
+function parse(text){const cleaned=text.replace(/\s/g,'');return /^[1-3.0]{81}$/.test(cleaned)?[...cleaned].map(c=>c==='.'?0:Number(c)):null;}
+async function verifyInput(input,status,button,load){const puzzle=parse(input.value);if(!puzzle){status.textContent='Enter exactly 81 characters using 1–3, dots or 0 for blanks.';return;}button.disabled=true;status.textContent='Checking all solutions…';if(!load)$('#tripleVerifyOutput').replaceChildren();try{const result=await request({type:'verify',puzzle});if(result.count===0)status.textContent='This puzzle has no solution.';else if(result.count>1)status.textContent=load?'This puzzle has multiple solutions. Load a uniquely solvable puzzle to use Play and Walkthrough.':'This puzzle has multiple solutions. Two possible completed grids are shown below.';else status.textContent='Unique solution verified.';if(load&&result.count===1){state=fresh({puzzle,solution:result.solution});revealed=false;save();render();}if(!load&&result.count)for(const [i,solution] of (result.solutions||[result.solution]).entries()){const article=document.createElement('article'),title=document.createElement('h3');title.textContent=`Solution ${i+1}`;article.append(title,TripleDisplay.createPair(puzzle,solution,i+1));$('#tripleVerifyOutput').append(article);}}catch{status.textContent='Could not verify the puzzle. Please try again.';}finally{button.disabled=false;}}
+$('#loadTriplePlay').onclick=()=>verifyInput($('#triplePlayInput'),$('#loadTripleStatus'),$('#loadTriplePlay'),true);
+$('#tripleVerifyButton').onclick=()=>verifyInput($('#tripleVerifyInput'),$('#tripleVerifyStatus'),$('#tripleVerifyButton'),false);
+$('#generatePlay').onclick=()=>{if(!state)return;if(store('triple-sudoku-progress-v1',fresh(state)))location.href=site.href('triple','play');else $('#generateStatus').textContent='Could not save this puzzle. Copy the string to open it in Play.';};
+$('#generateWalkthrough').onclick=()=>{if(state){walkthroughSource();location.href=site.href('triple','walkthrough');}};
+function renderArchive(){const text=$('#archiveMonth').value;if(!/^\d{4}-\d{2}$/.test(text))return;const [year,month]=text.split('-').map(Number),first=new Date(year,month-1,1),last=new Date(year,month,0),cells=[];for(const day of ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']){const label=document.createElement('span');label.textContent=day;cells.push(label);}for(let i=0;i<first.getDay();i++)cells.push(document.createElement('span'));for(let day=1;day<=last.getDate();day++){const key=`${text}-${String(day).padStart(2,'0')}`,cell=document.createElement(key<=today?'a':'span');cell.textContent=day;if(key<=today){cell.href=site.href('triple','archive',key.replaceAll('-','/'));cell.setAttribute('aria-label',key);if(key===today)cell.className='today';}cells.push(cell);}$('#archiveDays').replaceChildren(...cells);}
+$('#archiveMonth').max=today.slice(0,7);$('#archiveMonth').value=today.slice(0,7);$('#archiveMonth').onchange=renderArchive;
+if(route==='archive'&&!daily){renderArchive();if(site.date)$('#pageNotice').textContent='Choose a valid date, no later than today.';}
+function validSaved(s){return s&&engine.validInput(s.puzzle)&&engine.validInput(s.values)&&engine.validInput(s.solution)&&s.solution.every(Boolean)&&!engine.conflicts(s.solution).size&&s.puzzle.every((n,i)=>!n||n===s.solution[i]&&s.values[i]===n)&&Array.isArray(s.notes)&&s.notes.length===81&&s.notes.every(a=>Array.isArray(a)&&a.every(n=>[1,2,3].includes(n)));}
+async function initialize(){if(!['play','generate','walkthrough'].includes(route)&&!daily)return;try{let saved=JSON.parse(localStorage.getItem(storageKey));if(route==='walkthrough'){const source=JSON.parse(localStorage.getItem('triple-walkthrough-source-v1'));if(source)saved=fresh(source);}if(validSaved(saved)){const result=await request({type:'verify',puzzle:saved.puzzle});if(result.count===1)state=saved;}}catch{}if(state){if(state.mode)$('#digMode').value=$('#generateMode').value=state.mode;render();$('#grid').setAttribute('aria-busy','false');}else await newPuzzle();}
+initialize();
+window.addEventListener('pagehide',()=>{for(const worker of workers)worker.terminate();workers.clear();});
+document.addEventListener('visibilitychange',()=>{if(route==='daily'&&document.visibilityState==='visible'&&dateKey(new Date())!==today)location.reload();});

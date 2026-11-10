@@ -22,7 +22,7 @@
   function solve(input) {
     if (!validInput(input) || conflicts(input).size) return { count: 0, complete: true, solution: null };
     const grid = input.slice(), counts = units.map(unit => [0, ...[1, 2, 3].map(d => unit.filter(i => grid[i] === d).length)]);
-    let count = 0, solution = null;
+    let count = 0, solution = null; const solutions = [];
     function visit() {
       let chosen = -1, choices = null;
       const candidates = new Map();
@@ -32,7 +32,7 @@
         candidates.set(i, options);
         if (!choices || options.length < choices.length) { chosen = i; choices = options; }
       }
-      if (chosen === -1) { count++; solution ||= grid.slice(); return; }
+      if (chosen === -1) { count++; solution ||= grid.slice(); solutions.push(grid.slice()); return; }
       for (let id = 0; id < 27; id++) for (let d = 1; d <= 3; d++) {
         if (counts[id][d] + units[id].filter(i => candidates.get(i)?.includes(d)).length < 3) return;
       }
@@ -46,7 +46,7 @@
       }
     }
     visit();
-    return { count, complete: true, solution };
+    return { count, complete: true, solution, solutions };
   }
   function shuffle(values, random = Math.random) {
     const result = values.slice();
@@ -74,6 +74,9 @@
         if (solve(puzzle).count !== 1) { puzzle[i] = a; puzzle[j] = b; }
         await pause();
       }
+      // Every accepted removal is exactly two cells. Rejected pairs cannot
+      // become uniquely removable after more clues have been removed.
+      return { puzzle, solution, mode };
     }
     for (const i of shuffle(Array.from({ length: 81 }, (_, i) => i), random)) {
       if (!puzzle[i]) continue;

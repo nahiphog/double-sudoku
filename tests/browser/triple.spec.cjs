@@ -4,7 +4,7 @@ test('custom build exact pattern, stop, copy controls, play handoff and dual gen
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   page.on('response',r=>{if(r.status()>=400)errors.push(r.url());});
   await page.goto('/triple.html');
-  await page.getByRole('link',{name:'Custom build'}).click();
+  await page.locator('[data-nav="build"]').click();
   await expect(page).toHaveURL(/triple-build.html$/);
   await page.locator('#buildPuzzle').click();
   await expect(page.locator('#buildStatus')).toContainText('Select at least one');
@@ -19,19 +19,20 @@ test('custom build exact pattern, stop, copy controls, play handoff and dual gen
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'test-results/triple-builder-mobile.png',fullPage:true});
   await page.locator('#playBuilt').click();
-  await expect(page).toHaveURL(/triple.html$/);
+  await expect(page).toHaveURL(/triple.html\?route=play$/);
   await expect(page.locator('#grid .given')).toHaveCount(80);
   await page.locator('#digMode').selectOption('dual');
   await page.locator('#newPuzzle').click();
   await expect(page.locator('#grid')).toHaveAttribute('aria-busy','false',{timeout:30000});
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('triple-sudoku-progress-v1')).mode)).toBe('dual');
+  await page.locator('[data-nav="simulation"]').click();
   await page.locator('#simulationTrials').fill('1');
   await page.locator('#simulationThreshold').fill('81');
   await page.locator('#simulationDigMode').selectOption('dual');
   await page.locator('#simulationRun').click();
   await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 1 of 1 trials.',{timeout:30000});
   await expect(page.locator('.simulation-example')).toHaveCount(1);
-  await page.getByRole('link',{name:'Custom build'}).click();
+  await page.locator('[data-nav="build"]').click();
   await page.locator('[data-index="0"]').click();
   await page.locator('#buildPuzzle').click();
   await expect(page.locator('#stopBuild')).toBeEnabled();
@@ -47,8 +48,9 @@ test('Triple Sudoku navigation, play, notes, persistence, reveal and mobile layo
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.status() >= 400) errors.push(response.url()); });
   await page.goto('/');
+  await page.locator('[data-nav="play"]').click();
   await page.getByRole('link', { name: 'Triple Sudoku', exact: true }).click();
-  await expect(page).toHaveURL(/triple.html$/);
+  await expect(page).toHaveURL(/triple.html\?route=play$/);
   await expect(page.locator('#status')).toContainText('unique solution');
   await expect(page.locator('.cell')).toHaveCount(81);
   const cell = page.locator('.cell:not(.given)').first();
@@ -72,7 +74,7 @@ test('Triple Sudoku navigation, play, notes, persistence, reveal and mobile layo
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/triple-mobile.png', fullPage: true });
   await page.getByRole('link', { name: 'Double Sudoku' }).click();
-  await expect(page.locator('body')).toHaveAttribute('data-page', 'daily');
+  await expect(page.locator('body')).toHaveAttribute('data-page', 'play');
   expect(errors).toEqual([]);
 });
 
@@ -80,9 +82,8 @@ test('simulation reports completed samples, stops, restarts and preserves play',
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.status() >= 400) errors.push(response.url()); });
-  await page.goto('/triple.html');
-  await expect(page.locator('#grid')).toHaveAttribute('aria-busy', 'false');
-  const originalGrid = await page.locator('#grid').textContent();
+  await page.goto('/triple.html?route=simulation');
+  const originalSave = await page.evaluate(()=>localStorage.getItem('triple-sudoku-progress-v1'));
   await page.locator('#simulationThreshold').fill('81');
   await page.locator('#simulationTrials').fill('8');
   await page.locator('#simulationRun').click();
@@ -113,13 +114,11 @@ test('simulation reports completed samples, stops, restarts and preserves play',
     return values.length === 81 && values.every(n => n >= 1 && n <= 3) && !TripleSudoku.conflicts(values).size &&
       [...puzzle].every((n, i) => n === '.' || n === solution[i]);
   }), pairs)).toBe(true);
-  await expect(page.locator('#grid')).toHaveText(originalGrid);
+  expect(await page.evaluate(()=>localStorage.getItem('triple-sudoku-progress-v1'))).toBe(originalSave);
   await page.locator('#simulationTrials').fill('10000');
   await page.locator('#simulationRun').click();
   await expect.poll(async () => Number(await page.locator('#simulationProgress').getAttribute('value'))).toBeGreaterThan(0);
   await expect(page.locator('#simulationThreshold')).toBeDisabled();
-  // Generating a playable puzzle must not disable the independent Stop button.
-  await page.locator('#newPuzzle').click();
   await expect(page.locator('#simulationStop')).toBeEnabled();
   await page.locator('#simulationStop').click();
   await expect(page.locator('#simulationStatus')).toContainText('Simulation stopped:');
@@ -140,7 +139,7 @@ test('simulation reports completed samples, stops, restarts and preserves play',
 });
 
 test('simulation validates trials and recovers from a worker load failure', async ({ page }) => {
-  await page.goto('/triple.html');
+  await page.goto('/triple.html?route=simulation');
   await page.locator('#simulationTrials').fill('1.5');
   await page.locator('#simulationRun').click();
   await expect(page.locator('#simulationRun')).toBeEnabled();
@@ -167,7 +166,7 @@ test('threshold includes every puzzle at or below it, preserves earlier matches,
         postMessage({type:'done'});
       };`,
   }));
-  await page.goto('/triple.html');
+  await page.goto('/triple.html?route=simulation');
   await page.locator('#simulationTrials').fill('5');
   await page.locator('#simulationThreshold').fill('40');
   await page.locator('#simulationRun').click();
@@ -233,7 +232,7 @@ test('each example copies its own puzzle and solution as text and PNG, with fail
       postMessage({type:'done'});
     };`,
   }));
-  await page.goto('/triple.html');
+  await page.goto('/triple.html?route=simulation');
   await page.locator('#simulationTrials').fill('2');
   await page.locator('#simulationRun').click();
   await expect(page.locator('#simulationStatus')).toHaveText('Simulation complete: 2 of 2 trials.');

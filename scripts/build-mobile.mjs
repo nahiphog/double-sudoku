@@ -5,6 +5,7 @@ function mobileLinks(text) {
   return text.replace(/href="\/double-sudoku\/([^"?#]*)"/g, (_, path) => {
     if (path.endsWith('.css')) return `href="${path}"`;
     if (path.replace(/\/$/, '') === 'triple/build') return 'href="triple-build.html"';
+    if (path.startsWith('triple/')) return `href="triple.html?route=${path.slice(7).replace(/\/$/, '')}"`;
     const route = path.replace(/\/$/, '');
     return `href="${['techniques', 'triple'].includes(route) ? route + '.html' : 'index.html?route=' + route}"`;
   }).replaceAll('src="/double-sudoku/', 'src="');
@@ -16,6 +17,6 @@ for (const file of ['index.html', 'techniques.html', 'triple.html', 'triple-buil
   if (file === 'techniques.html') html = html.replace('</head>', '<link rel="stylesheet" href="mobile.css"></head>').replace('width=device-width,initial-scale=1', 'width=device-width,initial-scale=1,viewport-fit=cover');
   await writeFile(`dist/${file}`, html);
 }
-for (const file of ['hint-solver.js', 'hint-style.css', 'mobile.css', 'progress.js', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js', 'triple-display.js', 'triple-worker.js', 'triple-build.js', 'triple-hints.js', 'triple-hint-worker.js', 'triple-walkthrough.js']) await copyFile(file, `dist/${file}`);
+for (const file of ['hint-solver.js', 'hint-style.css', 'mobile.css', 'progress.js', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js', 'triple-display.js', 'triple-worker.js', 'triple-build.js', 'triple-hints.js', 'triple-hint-worker.js', 'triple-walkthrough.js', 'site-nav.js', 'site-shell.css']) await copyFile(file, `dist/${file}`);
 await writeFile('dist/hint-ui.js', mobileLinks(await readFile('hint-ui.js', 'utf8')));
 console.log('Built offline mobile assets in dist/.');

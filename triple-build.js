@@ -56,7 +56,7 @@
     if (!result) return;
     try {
       localStorage.setItem('triple-sudoku-progress-v1', JSON.stringify({...result, values:result.puzzle.slice(), notes:Array.from({length:81},()=>[])}));
-      location.href = window.SUDOKU_MOBILE ? 'triple.html' : '/double-sudoku/triple/';
+      location.href = SudokuSite.href('triple', 'play');
     } catch { get('buildStatus').textContent = 'Could not save this puzzle for play. You can still copy it below.'; }
   };
   window.addEventListener('pagehide',()=>{if(worker)stop('Search stopped when leaving the page.');});

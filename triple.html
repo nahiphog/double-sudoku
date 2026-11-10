@@ -1,28 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-variant="triple">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Triple Sudoku</title>
   <meta name="description" content="Play uniquely solvable Triple Sudoku: place 1, 2 and 3 exactly three times in every row, column and 3×3 box.">
   <link rel="stylesheet" href="/double-sudoku/triple.css">
+  <script defer src="/double-sudoku/site-nav.js"></script>
   <script defer src="/double-sudoku/triple-sudoku.js"></script>
   <script defer src="/double-sudoku/triple-walkthrough.js"></script>
-  <script defer src="/double-sudoku/triple-ui.js"></script>
   <script defer src="/double-sudoku/triple-display.js"></script>
+  <script defer src="/double-sudoku/triple-ui.js"></script>
   <script defer src="/double-sudoku/triple-simulation.js"></script>
-</head>
+<link rel="stylesheet" href="/double-sudoku/site-shell.css"></head>
 <body>
   <main>
     <nav aria-label="Puzzle version"><a href="/double-sudoku/daily">← Double Sudoku</a><span aria-current="page">Triple Sudoku</span></nav>
-    <h1>Triple Sudoku</h1>
-    <p>Fill the 9×9 grid with <strong>1, 2 and 3</strong>. Each number must appear <strong>exactly three times</strong> in every row, column and outlined 3×3 box.</p>
-    <p><a href="#simulation">Go to clue-count simulation ↓</a></p>
-    <p><a href="/double-sudoku/triple/build">Custom build →</a></p>
-    <div id="playControls">
+    <div class="route-intro"><h1 id="routeTitle">Triple Sudoku</h1><p id="routeDescription"></p></div>
+    <p id="pageNotice" role="status"></p>
+    <div id="playControls" class="triple-page">
+    <p id="dailyDate" hidden></p>
+    <div class="puzzle-import custom-play-only"><label for="triplePlayInput">Load a puzzle (81 characters: 1–3 and dots for blanks)</label><textarea id="triplePlayInput" rows="3" spellcheck="false"></textarea><button id="loadTriplePlay" type="button">Load puzzle</button><p id="loadTripleStatus" role="status"></p></div>
+    <div class="custom-play-only">
     <label for="digMode">Digging method</label>
-    <select id="digMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, then single-cell cleanup</option></select>
-    <div class="actions"><button id="newPuzzle">New puzzle</button><button id="reset">Reset entries</button><button id="reveal">Show solution</button></div>
+    <select id="digMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, from start to finish</option></select>
+    <div class="actions"><button id="newPuzzle">New puzzle</button></div>
+    </div>
+    <div class="actions"><button id="reset">Reset entries</button><button id="reveal">Show solution</button></div>
     <p id="status" role="status" aria-live="polite">Generating a uniquely solvable puzzle…</p>
     <section aria-label="Puzzle board">
       <div id="grid" class="grid" aria-label="Triple Sudoku grid" aria-busy="true"></div>
@@ -33,7 +37,30 @@
     </section>
     <div class="actions"><button id="copy">Copy puzzle</button></div>
     </div>
-    <section id="walkthrough" aria-labelledby="walkTitle">
+    <section id="generatePage" class="triple-page">
+      <label for="generateMode">Digging method</label><select id="generateMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, from start to finish</option></select>
+      <p class="route-note">Single-cell mode stops when no clue can be removed. Dual-cell mode removes pairs only and stops when no pair can be removed; a single removable clue may remain.</p>
+      <div class="actions"><button id="generateNew" type="button">Generate puzzle</button><button id="generatePlay" type="button" disabled>Play this puzzle</button><button id="generateWalkthrough" type="button" disabled>Walk through solution</button></div>
+      <p id="generateStatus" role="status"></p><div id="generateOutput"></div>
+    </section>
+    <section id="tripleVerify" class="triple-page">
+      <label for="tripleVerifyInput">Puzzle string</label><textarea id="tripleVerifyInput" class="route-input" rows="3" placeholder="81 characters: 1, 2, 3 and dots" spellcheck="false"></textarea>
+      <div class="actions"><button id="tripleVerifyButton" type="button">Verify puzzle</button></div><p id="tripleVerifyStatus" role="status"></p><div id="tripleVerifyOutput"></div>
+    </section>
+    <section id="tripleArchive" class="triple-page">
+      <label for="archiveMonth">Month</label><input id="archiveMonth" type="month"><p class="route-note">Choose a date to play its repeatable daily puzzle. Your progress is saved separately for every date.</p><div id="archiveDays" class="archive-days"></div>
+    </section>
+    <section id="tripleTechniques" class="triple-page">
+      <p>Each row, column and box needs three copies of each digit. Always count how many copies are still needed.</p>
+      <article class="technique-card"><h3>Completed counts and naked singles</h3><p>Once a unit contains three copies of a digit, remove that digit from its other cells. If a cell has just one candidate left, place it.</p></article>
+      <article class="technique-card"><h3>Hidden singles and forced copies</h3><p>If a row needs two more 2s and exactly two cells can hold 2, both must be 2. The same rule works for one or three remaining copies.</p></article>
+      <article class="technique-card"><h3>Subsets based on remaining copies</h3><p>Suppose a row needs two 1s, one 2 and one 3. If three empty cells can contain only 1 or 2, they use all those copies; the fourth cell must be 3. Two cells with candidates {1,2} are not automatically a naked pair when more than two copies remain.</p></article>
+      <article class="technique-card"><h3>Locked candidates</h3><p>If a box needs two more 1s, all confined to one row, and that row also needs exactly two, remove 1 from the row outside that box. The remaining allowances must match.</p></article>
+      <article class="technique-card"><h3>Fish</h3><p>When selected rows require as many copies of a digit as their covering columns can hold, the rows consume the columns’ entire remaining allowance. Remove that digit elsewhere in those columns.</p></article>
+      <article class="technique-card"><h3>Short contradiction chains</h3><p>Assume a candidate, follow forced placements, and look for a definite contradiction: too many copies, too few available positions, or a cell with no candidate. A stalled search is not proof of impossibility.</p></article>
+      <p><a id="techniquesWalkLink">Try the solution walkthrough →</a></p>
+    </section>
+    <section class="triple-page" id="walkthrough" aria-labelledby="walkTitle">
       <h2 id="walkTitle">Solution walkthrough</h2>
       <p>Work through the current puzzle from its original clues. This separate board leaves your entries and notes unchanged.</p>
       <p class="help">Uses completed digit counts, singles, two or three forced copies, subsets based on remaining copies, locked candidates, fish and short contradiction chains. A puzzle may need deductions beyond these techniques; the walkthrough will say when it is stuck.</p>
@@ -47,9 +74,9 @@
         <details><summary>Applied steps</summary><ol id="walkSteps"></ol></details>
       </div>
     </section>
-    <section id="simulation" aria-labelledby="simulationTitle">
+    <section class="triple-page" id="simulation" aria-labelledby="simulationTitle">
       <h2 id="simulationTitle">Clue-count simulation</h2>
-      <p>Single-cell digging removes one clue at a time. Dual-cell digging tries pairs first, then finishes with single-cell cleanup. Both preserve a unique solution and leave no removable clue, with no search limit.</p>
+      <p>Single-cell digging removes one clue at a time. Dual-cell digging removes only pairs, from start to finish, until no pair can be removed. It may leave a removable single clue. Both modes preserve a unique solution, with no search limit.</p>
       <p class="help">This is the observed distribution for this generator and random digging order, not a uniform sample of all Triple Sudoku puzzles. Each run starts a fresh sample and leaves your playable puzzle untouched.</p>
       <form id="simulationForm" class="actions">
         <label for="simulationTrials">Trials</label>
@@ -58,7 +85,7 @@
         <input id="simulationThreshold" type="number" min="0" max="81" step="1" value="30" required aria-describedby="simulationThresholdHelp">
         <span>clues</span>
         <label for="simulationDigMode">Digging method</label>
-        <select id="simulationDigMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, then single-cell cleanup</option></select>
+        <select id="simulationDigMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, from start to finish</option></select>
         <button id="simulationRun" type="submit">Run simulation</button>
         <button id="simulationStop" type="button" disabled>Stop simulation</button>
       </form>
