@@ -7,6 +7,7 @@
   <meta name="description" content="Play uniquely solvable Triple Sudoku: place 1, 2 and 3 exactly three times in every row, column and 3×3 box.">
   <link rel="stylesheet" href="/double-sudoku/triple.css">
   <script defer src="/double-sudoku/triple-sudoku.js"></script>
+  <script defer src="/double-sudoku/triple-walkthrough.js"></script>
   <script defer src="/double-sudoku/triple-ui.js"></script>
   <script defer src="/double-sudoku/triple-display.js"></script>
   <script defer src="/double-sudoku/triple-simulation.js"></script>
@@ -32,6 +33,20 @@
     </section>
     <div class="actions"><button id="copy">Copy puzzle</button></div>
     </div>
+    <section id="walkthrough" aria-labelledby="walkTitle">
+      <h2 id="walkTitle">Solution walkthrough</h2>
+      <p>Work through the current puzzle from its original clues. This separate board leaves your entries and notes unchanged.</p>
+      <p class="help">Uses completed digit counts, singles, two or three forced copies, subsets based on remaining copies, locked candidates, fish and short contradiction chains. A puzzle may need deductions beyond these techniques; the walkthrough will say when it is stuck.</p>
+      <button id="walkStart" type="button" disabled>Start / restart walkthrough</button>
+      <div id="walkContent" hidden>
+        <p id="walkCount"></p>
+        <div id="walkGrid" class="walk-grid" aria-label="Triple Sudoku walkthrough board"></div>
+        <p class="help">Small digits are candidates. Yellow marks supporting cells; blue outlines mark affected cells. Red struck-through candidates will be removed, and green candidates will be placed. Each digit is allowed three times per unit.</p>
+        <div class="actions"><button id="walkNext" type="button">Next deduction</button><button id="walkApply" type="button" disabled>Apply step</button><button id="walkUndo" type="button" disabled>Undo step</button></div>
+        <div aria-live="polite"><h3 id="walkTechnique">Walkthrough</h3><p id="walkExplanation"></p><ol id="walkProof"></ol><p id="walkChanges" class="help"></p></div>
+        <details><summary>Applied steps</summary><ol id="walkSteps"></ol></details>
+      </div>
+    </section>
     <section id="simulation" aria-labelledby="simulationTitle">
       <h2 id="simulationTitle">Clue-count simulation</h2>
       <p>Single-cell digging removes one clue at a time. Dual-cell digging tries pairs first, then finishes with single-cell cleanup. Both preserve a unique solution and leave no removable clue, with no search limit.</p>

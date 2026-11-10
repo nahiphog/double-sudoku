@@ -22,7 +22,7 @@ for (const route of routes) {
 }
 await copyFile('sitemap.xml', '_site/sitemap.xml');
 await copyFile('robots.txt', '_site/robots.txt');
-for (const file of ['hint-solver.js', 'hint-ui.js', 'hint-style.css', 'progress.js', 'mobile.css', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js', 'triple-display.js', 'triple-worker.js', 'triple-build.js']) {
+for (const file of ['hint-solver.js', 'hint-ui.js', 'hint-style.css', 'progress.js', 'mobile.css', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js', 'triple-display.js', 'triple-worker.js', 'triple-build.js', 'triple-hints.js', 'triple-hint-worker.js', 'triple-walkthrough.js']) {
   await copyFile(file, `_site/${file}`);
 }
 await writeFile('_site/.nojekyll', '');

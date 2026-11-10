@@ -6,6 +6,7 @@ const generationWorkerUrl = new URL('triple-worker.js', document.currentScript.s
 let state, digit = 1, notesMode = false, revealed = false, busy = false;
 function save() { try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {} }
 function render() {
+  TripleWalkthrough.load(state.puzzle);
   const focused = document.activeElement?.dataset.cell;
   const values = revealed ? state.solution : state.values;
   const bad = engine.conflicts(values);

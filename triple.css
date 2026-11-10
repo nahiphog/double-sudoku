@@ -50,3 +50,17 @@ select { max-width: 100%; padding: 10px; border: 2px solid #111; background: whi
 .build-cell[aria-pressed="true"] { background: #9be3a7; color: #111; }
 #buildPair textarea { display: block; width: 100%; padding: 10px; font: 14px monospace; resize: vertical; }
 #buildResults { margin-top: 32px; }
+#walkthrough { margin: 40px 0; border-top: 2px solid #111; padding-top: 20px; }
+.walk-grid { display: grid; grid-template-columns: repeat(9,minmax(0,1fr)); border: 3px solid #111; max-width: 560px; }
+.walk-cell { display:flex; align-items:center; justify-content:center; gap:3px; aspect-ratio:1; min-width:0; border-right:1px solid #777; border-bottom:1px solid #777; font:700 clamp(17px,5vw,28px) system-ui,sans-serif; color:#1455c0; }
+.walk-cell:nth-child(3n) { border-right:3px solid #111; }
+.walk-cell:nth-child(9n) { border-right:0; }
+.walk-cell:nth-child(n+19):nth-child(-n+27),.walk-cell:nth-child(n+46):nth-child(-n+54) { border-bottom:3px solid #111; }
+.walk-cell:nth-child(n+73) { border-bottom:0; }
+.walk-given { background:#f0f0f0; color:#111; }
+.walk-support { background:#fff1a8; }
+.walk-target { box-shadow:inset 0 0 0 2px #1455c0; }
+.walk-candidates { font-size:clamp(9px,2.6vw,15px); font-weight:400; color:#444; }
+.walk-remove { text-decoration:line-through; color:#b00020; font-weight:800; }
+.walk-place { background:#b8e6c3; color:#174d2b; font-weight:800; }
+#walkSteps li,#walkProof li { margin-bottom:12px; line-height:1.5; }

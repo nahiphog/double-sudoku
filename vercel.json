@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/double-sudoku/triple-hints.js",
+      "destination": "/triple-hints.js"
+    },
+    {
+      "source": "/double-sudoku/triple-hint-worker.js",
+      "destination": "/triple-hint-worker.js"
+    },
+    {
+      "source": "/double-sudoku/triple-walkthrough.js",
+      "destination": "/triple-walkthrough.js"
+    },
+    {
       "source": "/double-sudoku/triple/build",
       "destination": "/triple-build.html"
     },
