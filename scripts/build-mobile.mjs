@@ -6,7 +6,7 @@ function mobileLinks(text) {
     if (path.endsWith('.css')) return `href="${path}"`;
     if (path.replace(/\/$/, '') === 'triple/build') return 'href="triple-build.html"';
     if (path.startsWith('triple/')) return `href="triple.html?route=${path.slice(7).replace(/\/$/, '')}"`;
-    const route = path.replace(/\/$/, '');
+    const route = path.replace(/^double\//, '').replace(/\/$/, '');
     return `href="${['techniques', 'triple'].includes(route) ? route + '.html' : 'index.html?route=' + route}"`;
   }).replaceAll('src="/double-sudoku/', 'src="');
 }

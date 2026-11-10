@@ -5,7 +5,7 @@
   const path = location.pathname;
   const variant = document.documentElement.dataset.variant || (path.includes('/triple') ? 'triple' : 'double');
   const pages = [['daily','Daily'],['archive','Archive'],['generate','Generate'],['build','Custom build'],['simulation','Simulation'],['verify','Verify'],['play','Play'],['walkthrough','Walkthrough'],['techniques','Techniques']];
-  let route = mobile ? new URLSearchParams(location.search).get('route') : path.startsWith(base) ? path.slice(base.length).replace(/^triple\/?/,'') : '';
+  let route = mobile ? new URLSearchParams(location.search).get('route') : path.startsWith(base) ? path.slice(base.length).replace(/^(?:double|triple)(?:\/|$)/,'') : '';
   if (!route && /triple-build\.html$/.test(path)) route = 'build';
   if (!route && /techniques(?:\.html|\/)?$/.test(path)) route = 'techniques';
   if (!route && variant === 'triple' && ['#simulation','#walkthrough'].includes(location.hash)) route = location.hash.slice(1);
@@ -21,9 +21,14 @@
       return `${kind==='triple'?'triple':'index'}.html?route=${section}${suffix}`;
     }
     // Query dates share one archive document, including dates created after build.
-    return `${base}${kind==='triple'?'triple/':''}${section}${date?'?date='+date.replaceAll('/','-'):''}`;
+    return `${base}${kind}/${section}/${date?'?date='+date.replaceAll('/','-'):''}`;
   }
   const date = datePath || (page==='archive' ? (new URLSearchParams(location.search).get('date')||'').replaceAll('-','/') : '');
+  if (!mobile) {
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.append(canonical); }
+    canonical.href = location.origin + href(variant, page, date);
+  }
   if (variant === 'triple' && ['#simulation','#walkthrough'].includes(location.hash)) {
     history.replaceState(null, '', href('triple', page));
   }

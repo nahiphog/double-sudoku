@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/double-sudoku/double/techniques",
+      "destination": "/techniques.html"
+    },
+    {
+      "source": "/double-sudoku/double/techniques/",
+      "destination": "/techniques.html"
+    },
+    {
       "source": "/double-sudoku/triple/daily",
       "destination": "/triple.html"
     },

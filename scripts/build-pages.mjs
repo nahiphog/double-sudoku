@@ -15,14 +15,20 @@ const routes = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(([, url]) => {
   if (!url.startsWith(base)) throw new Error(`Unexpected sitemap URL: ${url}`);
   return url.slice(base.length).replace(/\/$/, '');
 });
-for (const page of ['daily','archive','generate','build','simulation','verify','play','walkthrough','techniques']) {
-  if (!routes.includes('triple/'+page)) routes.push('triple/'+page);
-}
-if (!routes.includes('walkthrough')) routes.push('walkthrough');
 for (const route of routes) {
   const directory = route ? `_site/${route}` : '_site';
   await mkdir(directory, { recursive: true });
-  await writeFile(`${directory}/index.html`, route === 'triple/build' ? tripleBuild : (route === 'triple' || route.startsWith('triple/')) ? triple : route === 'techniques' ? techniques : html);
+  await writeFile(`${directory}/index.html`, route === 'triple/build' ? tripleBuild : route.startsWith('triple/') ? triple : route === 'double/techniques' ? techniques : html);
+}
+// Keep old bookmarks working while sending visitors to the namespaced URLs.
+const aliases = new Map([['', 'double/generate'], ['double', 'double/generate'], ['triple', 'triple/play']]);
+for (const route of routes) if (route.startsWith('double/')) aliases.set(route.slice(7), route);
+for (const [alias, target] of aliases) {
+  const directory = alias ? `_site/${alias}` : '_site';
+  const url = `/double-sudoku/${target}/`;
+  const redirect = alias === 'triple' ? `['#simulation','#walkthrough'].includes(location.hash)?'/double-sudoku/triple/'+location.hash.slice(1)+'/'+location.search:` : '';
+  await mkdir(directory, { recursive: true });
+  await writeFile(`${directory}/index.html`, `<!doctype html><html lang="en"><meta charset="utf-8"><title>Sudoku</title><link rel="canonical" href="${base}${target}/"><script>location.replace(${redirect}${JSON.stringify(url)}+location.search+location.hash)</script><a href="${url}">Continue to Sudoku</a></html>`);
 }
 await copyFile('sitemap.xml', '_site/sitemap.xml');
 await copyFile('robots.txt', '_site/robots.txt');
