@@ -66,7 +66,8 @@
     const solution = completedGrid(random), puzzle = solution.slice();
     if (mode === 'dual') {
       const pairs = [];
-      for (let i = 0; i < 81; i++) for (let j = i + 1; j < 81; j++) pairs.push([i, j]);
+      // Keep the centre clue: dual mode removes two distinct opposite cells.
+      for (let i = 0; i < 40; i++) pairs.push([i, 80 - i]);
       for (const [i, j] of shuffle(pairs, random)) {
         if (!puzzle[i] || !puzzle[j]) continue;
         const a = puzzle[i], b = puzzle[j];

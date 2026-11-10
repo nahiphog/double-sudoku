@@ -39,14 +39,16 @@ test('accepts three repeats, rejects four, and detects ambiguous puzzles', () =>
   assert.equal(triple.solve([4]).count, 0);
 });
 
-test('dual-cell digging removes only pairs and leaves no uniquely removable pair', async () => {
+test('dual-cell digging preserves rotational symmetry and exhausts opposite pairs', async () => {
   for (const seed of [10, 20, 30]) {
     const {puzzle, solution, mode} = await triple.generate(seeded(seed), undefined, {mode:'dual'});
     assert.equal(mode, 'dual'); assertComplete(solution);
     assert.equal(triple.solve(puzzle).count, 1);
     assert.equal((81-puzzle.filter(Boolean).length)%2,0);
     assert.ok(puzzle.every((n,i)=>!n||n===solution[i]));
-    for (let i=0;i<81;i++) if(puzzle[i]) for(let j=i+1;j<81;j++)if(puzzle[j]) {
+    assert.ok(puzzle[40]);
+    assert.ok(puzzle.every((n,i)=>Boolean(n)===Boolean(puzzle[80-i])));
+    for (let i=0;i<40;i++) if(puzzle[i]) { const j=80-i;
       const removed=puzzle.slice(); removed[i]=removed[j]=0;
       assert.equal(triple.solve(removed).count,2,`pair ${i},${j} must not be removable`);
     }

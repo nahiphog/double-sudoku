@@ -6,7 +6,7 @@ const today=dateKey(new Date()),selectedDate=site.date.replaceAll('/','-');
 const validDate=text=>/^\d{4}-\d{2}-\d{2}$/.test(text)&&dateKey(new Date(text+'T12:00:00'))===text&&text<=today;
 const daily=route==='daily'||route==='archive'&&validDate(selectedDate),puzzleDate=route==='daily'?today:selectedDate;
 if(daily&&route==='archive')document.documentElement.dataset.archivePuzzle='true';
-const storageKey=daily?`triple-sudoku-daily-v1:${puzzleDate}`:route==='generate'?'triple-sudoku-generated-v1':'triple-sudoku-progress-v1';
+const storageKey=daily?`triple-sudoku-daily-v1:${puzzleDate}`:route==='generate'?'triple-sudoku-generated-v2':'triple-sudoku-progress-v1';
 let state,digit=1,notesMode=false,revealed=false,busy=false;const workers=new Set();
 const titles={daily:'Daily Triple Sudoku',archive:daily?'Archived Triple Sudoku':'Triple Sudoku archive',generate:'Generate Triple Sudoku',play:'Play Triple Sudoku',walkthrough:'Triple Sudoku walkthrough',simulation:'Triple Sudoku simulation',verify:'Verify Triple Sudoku',techniques:'Triple Sudoku techniques'};
 $('#routeTitle').textContent=titles[route]||'Triple Sudoku';
@@ -18,7 +18,7 @@ function save(){store(storageKey,state);}
 function walkthroughSource(){if(state)store('triple-walkthrough-source-v1',{puzzle:state.puzzle,solution:state.solution});}
 function render(){
  TripleWalkthrough.load(state.puzzle);walkthroughSource();
- if(route==='generate'){$('#generateOutput').replaceChildren(TripleDisplay.createPair(state.puzzle,state.solution,1));$('#generatePlay').disabled=$('#generateWalkthrough').disabled=false;$('#generateStatus').textContent=`${state.puzzle.filter(Boolean).length} clues · unique solution · ${state.mode==='dual'?'dual-cell, pairs only; no further pair can be removed':'single-cell; no further clue can be removed'}`;return;}
+ if(route==='generate'){$('#generateOutput').replaceChildren(TripleDisplay.createPair(state.puzzle,state.solution,1));$('#generatePlay').disabled=$('#generateWalkthrough').disabled=false;$('#generateStatus').textContent=`${state.puzzle.filter(Boolean).length} clues · unique solution · ${state.mode==='dual'?'dual-cell, pairs only; no further opposite pair can be removed':'single-cell; no further clue can be removed'}`;return;}
  const focused=document.activeElement?.dataset.cell,values=revealed?state.solution:state.values,bad=engine.conflicts(values);
  $('#grid').replaceChildren(...values.map((value,i)=>{const button=document.createElement('button');button.type='button';button.dataset.cell=i;button.className='cell'+(state.puzzle[i]?' given':'')+(bad.has(i)?' wrong':'')+(!value&&state.notes[i].length?' pencil':'');button.textContent=value||state.notes[i].join(' ');button.setAttribute('aria-label',`Row ${Math.floor(i/9)+1}, column ${i%9+1}, ${value||'empty'}${state.puzzle[i]?', given':''}${!value&&state.notes[i].length?', notes '+state.notes[i].join(', '):''}${bad.has(i)?', conflict':''}`);button.setAttribute('aria-disabled',String(!!state.puzzle[i]||revealed));return button;}));
  if(focused!==undefined)$(`[data-cell="${focused}"]`)?.focus();$('#reveal').textContent=revealed?'Hide solution':'Show solution';

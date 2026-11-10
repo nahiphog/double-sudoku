@@ -39,7 +39,7 @@
     </div>
     <section id="generatePage" class="triple-page">
       <label for="generateMode">Digging method</label><select id="generateMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, from start to finish</option></select>
-      <p class="route-note">Single-cell mode stops when no clue can be removed. Dual-cell mode removes pairs only and stops when no pair can be removed; a single removable clue may remain.</p>
+      <p class="route-note">Single-cell mode stops when no clue can be removed. Dual-cell mode removes 180° rotationally opposite pairs only and stops when no opposite pair can be removed. The centre stays filled; a single removable clue may remain.</p>
       <div class="actions"><button id="generateNew" type="button">Generate puzzle</button><button id="generatePlay" type="button" disabled>Play this puzzle</button><button id="generateWalkthrough" type="button" disabled>Walk through solution</button></div>
       <p id="generateStatus" role="status"></p><div id="generateOutput"></div>
     </section>
@@ -76,7 +76,7 @@
     </section>
     <section class="triple-page" id="simulation" aria-labelledby="simulationTitle">
       <h2 id="simulationTitle">Clue-count simulation</h2>
-      <p>Single-cell digging removes one clue at a time. Dual-cell digging removes only pairs, from start to finish, until no pair can be removed. It may leave a removable single clue. Both modes preserve a unique solution, with no search limit.</p>
+      <p>Single-cell digging removes one clue at a time. Dual-cell digging removes only 180° rotationally opposite pairs, from start to finish, until no opposite pair can be removed. The centre stays filled. It may leave a removable single clue. Both modes preserve a unique solution, with no search limit.</p>
       <p class="help">This is the observed distribution for this generator and random digging order, not a uniform sample of all Triple Sudoku puzzles. Each run starts a fresh sample and leaves your playable puzzle untouched.</p>
       <form id="simulationForm" class="actions">
         <label for="simulationTrials">Trials</label>
