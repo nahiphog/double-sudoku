@@ -2,6 +2,7 @@
 const engine = TripleSudoku;
 const $ = selector => document.querySelector(selector);
 const storageKey = 'triple-sudoku-progress-v1';
+const generationWorkerUrl = new URL('triple-worker.js', document.currentScript.src);
 let state, digit = 1, notesMode = false, revealed = false, busy = false;
 function save() { try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {} }
 function render() {
@@ -33,17 +34,24 @@ function enter(i, value) {
 }
 async function newPuzzle() {
   busy = true;
+  $('#digMode').disabled = true;
   document.querySelectorAll('#playControls button').forEach(button => button.disabled = true);
   $('#grid').setAttribute('aria-busy', 'true');
   $('#status').textContent = 'Generating and checking a unique solution…';
   try {
-    const generated = await engine.generate(Math.random, () => new Promise(resolve => setTimeout(resolve, 0)));
+    const generated = await new Promise((resolve, reject) => {
+      const worker = new Worker(generationWorkerUrl);
+      worker.onmessage = ({data}) => { worker.terminate(); data.type === 'result' ? resolve(data) : reject(new Error('Generation failed')); };
+      worker.onerror = () => { worker.terminate(); reject(new Error('Generation failed')); };
+      worker.postMessage({ type: 'generate', mode: $('#digMode').value });
+    });
     state = { ...generated, values: generated.puzzle.slice(), notes: Array.from({ length: 81 }, () => []) };
     revealed = false; save(); render();
   } catch {
     $('#status').textContent = 'Could not generate a puzzle. Please try New puzzle again.';
   } finally {
     busy = false;
+    $('#digMode').disabled = false;
     document.querySelectorAll('#playControls button').forEach(button => button.disabled = false);
     $('#grid').setAttribute('aria-busy', 'false');
   }

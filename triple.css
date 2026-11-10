@@ -46,3 +46,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #1670db; outline-offs
 .simulation-pair section { min-width: 0; }
 .simulation-filled { color: #1455c0; }
 @media (max-width: 600px) { .simulation-pair { grid-template-columns: minmax(0, 1fr); } }
+select { max-width: 100%; padding: 10px; border: 2px solid #111; background: white; color: #111; font: inherit; }
+.build-cell[aria-pressed="true"] { background: #9be3a7; color: #111; }
+#buildPair textarea { display: block; width: 100%; padding: 10px; font: 14px monospace; resize: vertical; }
+#buildResults { margin-top: 32px; }

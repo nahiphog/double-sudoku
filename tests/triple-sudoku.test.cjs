@@ -38,3 +38,27 @@ test('accepts three repeats, rejects four, and detects ambiguous puzzles', () =>
   assert.equal(triple.solve(Array(81).fill(0)).complete, true);
   assert.equal(triple.solve([4]).count, 0);
 });
+
+test('dual-cell digging preserves uniqueness and leaves no removable single clue', async () => {
+  for (const seed of [10, 20, 30]) {
+    const {puzzle, solution, mode} = await triple.generate(seeded(seed), undefined, {mode:'dual'});
+    assert.equal(mode, 'dual'); assertComplete(solution);
+    assert.equal(triple.solve(puzzle).count, 1);
+    assert.ok(puzzle.every((n,i)=>!n||n===solution[i]));
+    for (let i=0;i<81;i++) if(puzzle[i]) {
+      const removed=puzzle.slice(); removed[i]=0;
+      assert.equal(triple.solve(removed).count,2);
+    }
+  }
+});
+
+test('custom builder uses exactly the selected cells and rejects nonunique attempts', () => {
+  const selected=Array.from({length:80},(_,i)=>i+1);
+  const result=triple.customAttempt(selected,seeded(9));
+  assert.ok(result); assertComplete(result.solution);
+  assert.equal(result.puzzle[0],0);
+  assert.ok(selected.every(i=>result.puzzle[i]===result.solution[i]));
+  assert.equal(triple.solve(result.puzzle).count,1);
+  assert.equal(triple.customAttempt([0],seeded(9)),null);
+  assert.throws(()=>triple.customAttempt([]));
+});

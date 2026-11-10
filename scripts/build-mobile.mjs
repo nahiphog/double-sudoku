@@ -4,17 +4,18 @@ import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
 function mobileLinks(text) {
   return text.replace(/href="\/double-sudoku\/([^"?#]*)"/g, (_, path) => {
     if (path.endsWith('.css')) return `href="${path}"`;
+    if (path.replace(/\/$/, '') === 'triple/build') return 'href="triple-build.html"';
     const route = path.replace(/\/$/, '');
     return `href="${['techniques', 'triple'].includes(route) ? route + '.html' : 'index.html?route=' + route}"`;
   }).replaceAll('src="/double-sudoku/', 'src="');
 }
 await mkdir('dist', { recursive: true });
-for (const file of ['index.html', 'techniques.html', 'triple.html']) {
+for (const file of ['index.html', 'techniques.html', 'triple.html', 'triple-build.html']) {
   let html = mobileLinks(await readFile(file, 'utf8'));
   html = html.replace('<head>', '<head><script>window.SUDOKU_MOBILE=true;</script>');
   if (file === 'techniques.html') html = html.replace('</head>', '<link rel="stylesheet" href="mobile.css"></head>').replace('width=device-width,initial-scale=1', 'width=device-width,initial-scale=1,viewport-fit=cover');
   await writeFile(`dist/${file}`, html);
 }
-for (const file of ['hint-solver.js', 'hint-style.css', 'mobile.css', 'progress.js', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js']) await copyFile(file, `dist/${file}`);
+for (const file of ['hint-solver.js', 'hint-style.css', 'mobile.css', 'progress.js', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js', 'triple-display.js', 'triple-worker.js', 'triple-build.js']) await copyFile(file, `dist/${file}`);
 await writeFile('dist/hint-ui.js', mobileLinks(await readFile('hint-ui.js', 'utf8')));
 console.log('Built offline mobile assets in dist/.');

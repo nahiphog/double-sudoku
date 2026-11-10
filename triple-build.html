@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Custom Build · Triple Sudoku</title>
+  <link rel="stylesheet" href="/double-sudoku/triple.css">
+  <script defer src="/double-sudoku/triple-display.js"></script>
+  <script defer src="/double-sudoku/triple-build.js"></script>
+</head><body><main>
+  <nav><a href="/double-sudoku/triple">← Triple Sudoku</a><span aria-current="page">Custom build</span></nav>
+  <h1>Custom build</h1>
+  <p>Select the cells that should contain clues. The builder searches for a uniquely solvable Triple Sudoku with <strong>exactly those clue positions</strong>.</p>
+  <p class="help">Green cells become givens; all other cells stay blank. Some patterns may not work. The search tries randomized completed grids until a match is found or you stop it; an unsuccessful search does not prove a pattern impossible.</p>
+  <div class="actions"><button id="selectAll" type="button">Select all</button><button id="clearSelection" type="button">Clear selection</button></div>
+  <p id="selectionCount">0 cells selected</p>
+  <div id="builderGrid" class="grid" aria-label="Choose clue positions"></div>
+  <div class="actions"><button id="buildPuzzle" type="button">Build puzzle</button><button id="stopBuild" type="button" disabled>Stop search</button></div>
+  <p id="buildStatus" role="status" aria-live="polite">Select clue positions to begin.</p>
+  <section id="buildResults" hidden>
+    <h2>Custom puzzle</h2>
+    <div id="buildPair"></div>
+    <button id="playBuilt" type="button">Play this puzzle</button>
+  </section>
+</main></body></html>

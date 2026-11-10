@@ -1,6 +1,26 @@
 {
   "rewrites": [
     {
+      "source": "/double-sudoku/triple/build",
+      "destination": "/triple-build.html"
+    },
+    {
+      "source": "/double-sudoku/triple/build/",
+      "destination": "/triple-build.html"
+    },
+    {
+      "source": "/double-sudoku/triple-worker.js",
+      "destination": "/triple-worker.js"
+    },
+    {
+      "source": "/double-sudoku/triple-build.js",
+      "destination": "/triple-build.js"
+    },
+    {
+      "source": "/double-sudoku/triple-display.js",
+      "destination": "/triple-display.js"
+    },
+    {
       "source": "/double-sudoku/triple-simulation.js",
       "destination": "/triple-simulation.js"
     },

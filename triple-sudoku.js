@@ -61,9 +61,22 @@
     const rows = order(), cols = order(), digits = shuffle([1, 2, 3], random);
     return rows.flatMap(r => cols.map(c => digits[(r + Math.floor(r / 3) + c) % 3]));
   }
-  async function generate(random = Math.random, pause = () => Promise.resolve()) {
+  async function generate(random = Math.random, pause = () => Promise.resolve(), { mode = 'single' } = {}) {
+    if (!['single', 'dual'].includes(mode)) throw new Error('Unknown digging mode');
     const solution = completedGrid(random), puzzle = solution.slice();
+    if (mode === 'dual') {
+      const pairs = [];
+      for (let i = 0; i < 81; i++) for (let j = i + 1; j < 81; j++) pairs.push([i, j]);
+      for (const [i, j] of shuffle(pairs, random)) {
+        if (!puzzle[i] || !puzzle[j]) continue;
+        const a = puzzle[i], b = puzzle[j];
+        puzzle[i] = puzzle[j] = 0;
+        if (solve(puzzle).count !== 1) { puzzle[i] = a; puzzle[j] = b; }
+        await pause();
+      }
+    }
     for (const i of shuffle(Array.from({ length: 81 }, (_, i) => i), random)) {
+      if (!puzzle[i]) continue;
       const saved = puzzle[i];
       puzzle[i] = 0;
       const result = solve(puzzle);
@@ -72,9 +85,15 @@
     }
     // A rejected removal stays non-unique after further removals, so one full
     // pass is sufficient: every remaining clue is necessary for uniqueness.
-    return { puzzle, solution };
+    return { puzzle, solution, mode };
   }
-  const api = { units, validInput, conflicts, solve, completedGrid, generate };
+  function customAttempt(selected, random = Math.random) {
+    if (!Array.isArray(selected) || !selected.length || selected.some(i => !Number.isInteger(i) || i < 0 || i >= 81)) throw new Error('Select clue cells');
+    const solution = completedGrid(random), mask = new Set(selected);
+    const puzzle = solution.map((n, i) => mask.has(i) ? n : 0);
+    return solve(puzzle).count === 1 ? { puzzle, solution } : null;
+  }
+  const api = { units, validInput, conflicts, solve, completedGrid, generate, customAttempt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TripleSudoku = api;
 })(globalThis);

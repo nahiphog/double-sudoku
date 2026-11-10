@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/double-sudoku/triple.css">
   <script defer src="/double-sudoku/triple-sudoku.js"></script>
   <script defer src="/double-sudoku/triple-ui.js"></script>
+  <script defer src="/double-sudoku/triple-display.js"></script>
   <script defer src="/double-sudoku/triple-simulation.js"></script>
 </head>
 <body>
@@ -16,7 +17,10 @@
     <h1>Triple Sudoku</h1>
     <p>Fill the 9×9 grid with <strong>1, 2 and 3</strong>. Each number must appear <strong>exactly three times</strong> in every row, column and outlined 3×3 box.</p>
     <p><a href="#simulation">Go to clue-count simulation ↓</a></p>
+    <p><a href="/double-sudoku/triple/build">Custom build →</a></p>
     <div id="playControls">
+    <label for="digMode">Digging method</label>
+    <select id="digMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, then single-cell cleanup</option></select>
     <div class="actions"><button id="newPuzzle">New puzzle</button><button id="reset">Reset entries</button><button id="reveal">Show solution</button></div>
     <p id="status" role="status" aria-live="polite">Generating a uniquely solvable puzzle…</p>
     <section aria-label="Puzzle board">
@@ -30,7 +34,7 @@
     </div>
     <section id="simulation" aria-labelledby="simulationTitle">
       <h2 id="simulationTitle">Clue-count simulation</h2>
-      <p>Generate puzzles and remove clues one at a time until every remaining clue is necessary for a unique solution. There is no search limit.</p>
+      <p>Single-cell digging removes one clue at a time. Dual-cell digging tries pairs first, then finishes with single-cell cleanup. Both preserve a unique solution and leave no removable clue, with no search limit.</p>
       <p class="help">This is the observed distribution for this generator and random digging order, not a uniform sample of all Triple Sudoku puzzles. Each run starts a fresh sample and leaves your playable puzzle untouched.</p>
       <form id="simulationForm" class="actions">
         <label for="simulationTrials">Trials</label>
@@ -38,6 +42,8 @@
         <label for="simulationThreshold">Show puzzles with at most</label>
         <input id="simulationThreshold" type="number" min="0" max="81" step="1" value="30" required aria-describedby="simulationThresholdHelp">
         <span>clues</span>
+        <label for="simulationDigMode">Digging method</label>
+        <select id="simulationDigMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, then single-cell cleanup</option></select>
         <button id="simulationRun" type="submit">Run simulation</button>
         <button id="simulationStop" type="button" disabled>Stop simulation</button>
       </form>

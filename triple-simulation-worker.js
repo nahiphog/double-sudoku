@@ -10,7 +10,7 @@ self.onmessage = async ({ data }) => {
   }
   try {
     for (let completed = 1; completed <= data.trials; completed++) {
-      const { puzzle, solution } = await TripleSudoku.generate();
+      const { puzzle, solution } = await TripleSudoku.generate(Math.random, undefined, { mode: data.mode || 'single' });
       self.postMessage({ type: 'sample', puzzle, solution, completed });
     }
     self.postMessage({ type: 'done' });
