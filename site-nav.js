@@ -9,7 +9,7 @@
   if (!route && /triple-build\.html$/.test(path)) route = 'build';
   if (!route && /techniques(?:\.html|\/)?$/.test(path)) route = 'techniques';
   if (!route && variant === 'triple' && ['#simulation','#walkthrough'].includes(location.hash)) route = location.hash.slice(1);
-  if (!route) route = variant === 'triple' ? 'play' : 'generate';
+  if (!route) route = 'generate';
   const parts = route.split('/').filter(Boolean);
   const page = pages.some(([key])=>key===parts[0]) ? parts[0] : 'generate';
   function href(kind, section) {

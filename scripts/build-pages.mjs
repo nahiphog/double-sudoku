@@ -30,7 +30,7 @@ for (const route of routes) {
   await writeFile(`${directory}/index.html`, route === 'triple/build' ? tripleBuild : route.startsWith('triple/') ? triple : route === 'double/techniques' ? techniques : html);
 }
 // Keep old bookmarks working while sending visitors to the namespaced URLs.
-const aliases = new Map([['', 'double/generate'], ['double', 'double/generate'], ['triple', 'triple/play']]);
+const aliases = new Map([['', 'double/generate'], ['double', 'double/generate'], ['triple', 'triple/generate']]);
 for (const route of routes) if (route.startsWith('double/')) aliases.set(route.slice(7), route);
 for (const [alias, target] of aliases) {
   const directory = alias ? `_site/${alias}` : '_site';
