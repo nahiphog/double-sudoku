@@ -13,22 +13,6 @@
       "destination": "/techniques.html"
     },
     {
-      "source": "/double-sudoku/triple/daily",
-      "destination": "/triple.html"
-    },
-    {
-      "source": "/double-sudoku/triple/daily/",
-      "destination": "/triple.html"
-    },
-    {
-      "source": "/double-sudoku/triple/archive",
-      "destination": "/triple.html"
-    },
-    {
-      "source": "/double-sudoku/triple/archive/",
-      "destination": "/triple.html"
-    },
-    {
       "source": "/double-sudoku/triple/generate",
       "destination": "/triple.html"
     },

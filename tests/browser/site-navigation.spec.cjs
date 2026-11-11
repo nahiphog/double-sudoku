@@ -1,6 +1,6 @@
 const {test,expect}=require('@playwright/test');
 const triple=require('../../triple-sudoku.js');
-const pages=['daily','archive','generate','build','simulation','verify','play','walkthrough','techniques'];
+const pages=['generate','build','simulation','verify','play','walkthrough','techniques'];
 test('all shared subpages preserve their section when toggling variants',async({page})=>{
   test.setTimeout(90000);
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(r.url());});
@@ -25,24 +25,6 @@ test('all shared subpages preserve their section when toggling variants',async({
     await expect(page.locator('html')).toHaveAttribute('data-section',section);
   }
   expect(errors).toEqual([]);
-});
-test('Triple date puzzles are repeatable and keep progress separate from Play and other dates',async({page})=>{
-  await page.goto('/triple.html?route=archive/2026/09/01');
-  await expect(page.locator('#grid')).toHaveAttribute('aria-busy','false');
-  const key='triple-sudoku-daily-v1:2026-09-01';
-  const firstPuzzle=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).puzzle,key);
-  const cell=page.locator('#grid .cell:not(.given)').first(),index=await cell.getAttribute('data-cell');
-  await page.locator('[data-digit="2"]').click();await cell.click();
-  await page.reload();await expect(page.locator(`[data-cell="${index}"]`)).toHaveText('2');
-  await page.goto('/triple.html?route=archive/2026/09/02');
-  await expect(page.locator('#grid')).toHaveAttribute('aria-busy','false');
-  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('triple-sudoku-daily-v1:2026-09-02')).puzzle)).not.toEqual(firstPuzzle);
-  await page.evaluate(key=>localStorage.removeItem(key),key);
-  await page.goto('/triple.html?route=archive/2026/09/01');await expect(page.locator('#grid')).toHaveAttribute('aria-busy','false');
-  expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).puzzle,key)).toEqual(firstPuzzle);
-  await page.locator('[data-nav="archive"]').click();await expect(page.locator('#tripleArchive')).toBeVisible();
-  await page.locator('#archiveMonth').fill('2026-09');await page.locator('#archiveMonth').dispatchEvent('change');
-  await page.getByRole('link',{name:'2026-09-01',exact:true}).click();await expect(page.locator('#dailyDate')).toHaveText('2026-09-01');
 });
 test('Triple verify distinguishes solutions and imported play survives variant toggles',async({page})=>{
   const solution=triple.completedGrid(()=>0.5),puzzle='.'+solution.slice(1).join('');

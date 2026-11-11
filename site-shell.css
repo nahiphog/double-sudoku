@@ -15,21 +15,12 @@ html[data-variant="triple"][data-section="simulation"] #simulation,
 html[data-variant="triple"][data-section="walkthrough"] #walkthrough,
 html[data-variant="triple"][data-section="generate"] #generatePage,
 html[data-variant="triple"][data-section="verify"] #tripleVerify,
-html[data-variant="triple"][data-section="techniques"] #tripleTechniques,
-html[data-variant="triple"][data-section="archive"] #tripleArchive { display:block; }
-html[data-variant="triple"][data-section="play"] #playControls,
-html[data-variant="triple"][data-section="daily"] #playControls,
-html[data-variant="triple"][data-section="archive"][data-archive-puzzle="true"] #playControls { display:block; }
-html[data-variant="triple"][data-section="archive"][data-archive-puzzle="true"] #tripleArchive { display:none; }
+html[data-variant="triple"][data-section="techniques"] #tripleTechniques{ display:block; }
+html[data-variant="triple"][data-section="play"] #playControls{ display:block; }
 html[data-variant="triple"] #simulation,html[data-variant="triple"] #walkthrough { margin:0; padding:0; border:0; }
-html[data-section="daily"] .custom-play-only,html[data-section="archive"] .custom-play-only { display:none; }
 .route-intro { margin-bottom:24px; }
 .route-intro h1 { text-align:left; }
 .puzzle-import textarea,.route-input { width:100%; max-width:600px; padding:10px; border:2px solid #111; font:14px monospace; }
-.archive-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-top:20px; }
-.archive-days a,.archive-days span { min-width:0; padding:10px 2px; text-align:center; }
-.archive-days a { border:1px solid; text-decoration:none; color:inherit; }
-.archive-days a.today { background:#111; color:white; }
 .technique-card { padding:20px; border:1px solid; margin:16px 0; }
 .technique-card h3 { margin-top:0; }
 .route-note { font-size:14px; line-height:1.6; }

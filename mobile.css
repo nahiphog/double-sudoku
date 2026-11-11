@@ -19,10 +19,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid #246ad3; outline-offs
   .play-cell { padding: 0; font-size: clamp(18px, 6vw, 28px); }
   .play-notes { padding: 2px; font-size: 12px; }
   .string-input { font-size: 16px; }
-  .daily-calendar { gap: 3px; }
-  .calendar-day { min-height: 36px; font-size: 14px; }
-  .daily-modal { padding: 12px; }
-  .daily-modal-card { padding: 48px 12px 12px; }
   .histogram { overflow-x: auto; }
   .histogram-bars { min-width: 420px; }
   .hint-panel { overflow-wrap: anywhere; }

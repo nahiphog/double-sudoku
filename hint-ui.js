@@ -82,10 +82,10 @@
     return link;
   }
   function state(key) {
-    return key === 'play' ? { values: playValues, givens: playGivens } : dailyEntryState(key);
+    return { values: playValues, givens: playGivens };
   }
   function gridFor(key) {
-    return key === 'play' ? [document.querySelector('#playGrid')] : [...document.querySelectorAll(`[data-daily-entry-grid="${key}"]`)];
+    return [document.querySelector('#playGrid')];
   }
   function session(key) {
     const fingerprint = state(key).values.join('');
@@ -137,9 +137,9 @@
     }
   }
   function attach() {
-    const grids = [...document.querySelectorAll('#playGrid, [data-daily-entry-grid]')];
+    const grids = [...document.querySelectorAll('#playGrid')];
     for (const grid of grids) {
-      const key = grid.id === 'playGrid' ? 'play' : grid.dataset.dailyEntryGrid;
+      const key = 'play';
       if (!grid.parentElement.querySelector('[data-hint-panel]')) {
         const panel = document.createElement('section');
         panel.className = 'hint-panel'; panel.dataset.hintPanel = key;
@@ -151,7 +151,7 @@
         };
         panel.querySelector('[data-hint-candidates]').onclick = () => {
           const s = session(key); s.active = !s.active;
-          if (key === 'play') renderPlay(); else refreshDailyEntry(key);
+          renderPlay();
         };
         panel.querySelector('[data-hint-apply]').onclick = () => {
           const s = session(key), move = s.pending;
@@ -160,7 +160,7 @@
           for (const { cell, digit } of move.placements) if (!current.givens.has(cell)) current.values[cell] = digit;
           for (const { cell, digit } of move.eliminations) if (!s.excluded[cell].includes(digit)) s.excluded[cell].push(digit);
           s.fingerprint = current.values.join(''); s.history.push(move); s.pending = null;
-          if (key === 'play') renderPlay(); else refreshDailyEntry(key);
+          renderPlay();
           paint(key);
         };
       }
@@ -169,10 +169,6 @@
   }
   const originalPlay = renderPlay;
   renderPlay = function () { originalPlay(); attach(); };
-  const originalRefresh = refreshDailyEntry;
-  refreshDailyEntry = function (key) { originalRefresh(key); attach(); };
-  const originalDaily = renderDaily;
-  renderDaily = function () { originalDaily(); attach(); };
   // Reloading or clearing a play grid explicitly starts a fresh hint session.
   for (const id of ['loadPlay', 'clearPlay']) {
     const button = document.getElementById(id), original = button.onclick;

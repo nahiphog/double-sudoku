@@ -15,11 +15,10 @@
 <link rel="stylesheet" href="/double-sudoku/site-shell.css"><link rel="icon" type="image/svg+xml" sizes="any" href="/double-sudoku/site-icon.svg"></head>
 <body>
   <main>
-    <nav aria-label="Puzzle version"><a href="/double-sudoku/double/daily/">← Double Sudoku</a><span aria-current="page">Triple Sudoku</span></nav>
+    <nav aria-label="Puzzle version"><a href="/double-sudoku/double/generate/">← Double Sudoku</a><span aria-current="page">Triple Sudoku</span></nav>
     <div class="route-intro"><h1 id="routeTitle">Triple Sudoku</h1><p id="routeDescription"></p></div>
     <p id="pageNotice" role="status"></p>
     <div id="playControls" class="triple-page">
-    <p id="dailyDate" hidden></p>
     <div class="puzzle-import custom-play-only"><label for="triplePlayInput">Load a puzzle (81 characters: 1–3 and dots for blanks)</label><textarea id="triplePlayInput" rows="3" spellcheck="false"></textarea><button id="loadTriplePlay" type="button">Load puzzle</button><p id="loadTripleStatus" role="status"></p></div>
     <div class="custom-play-only">
     <label for="digMode">Digging method</label>
@@ -46,9 +45,6 @@
     <section id="tripleVerify" class="triple-page">
       <label for="tripleVerifyInput">Puzzle string</label><textarea id="tripleVerifyInput" class="route-input" rows="3" placeholder="81 characters: 1, 2, 3 and dots" spellcheck="false"></textarea>
       <div class="actions"><button id="tripleVerifyButton" type="button">Verify puzzle</button></div><p id="tripleVerifyStatus" role="status"></p><div id="tripleVerifyOutput"></div>
-    </section>
-    <section id="tripleArchive" class="triple-page">
-      <label for="archiveMonth">Month</label><input id="archiveMonth" type="month"><p class="route-note">Choose a date to play its repeatable daily puzzle. Your progress is saved separately for every date.</p><div id="archiveDays" class="archive-days"></div>
     </section>
     <section id="tripleTechniques" class="triple-page">
       <p>Each row, column and box needs three copies of each digit. Always count how many copies are still needed.</p>

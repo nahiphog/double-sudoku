@@ -4,35 +4,31 @@
   const mobile = !!window.SUDOKU_MOBILE;
   const path = location.pathname;
   const variant = document.documentElement.dataset.variant || (path.includes('/triple') ? 'triple' : 'double');
-  const pages = [['daily','Daily'],['archive','Archive'],['generate','Generate'],['build','Custom build'],['simulation','Simulation'],['verify','Verify'],['play','Play'],['walkthrough','Walkthrough'],['techniques','Techniques']];
+  const pages = [['generate','Generate'],['build','Custom build'],['simulation','Simulation'],['verify','Verify'],['play','Play'],['walkthrough','Walkthrough'],['techniques','Techniques']];
   let route = mobile ? new URLSearchParams(location.search).get('route') : path.startsWith(base) ? path.slice(base.length).replace(/^(?:double|triple)(?:\/|$)/,'') : '';
   if (!route && /triple-build\.html$/.test(path)) route = 'build';
   if (!route && /techniques(?:\.html|\/)?$/.test(path)) route = 'techniques';
   if (!route && variant === 'triple' && ['#simulation','#walkthrough'].includes(location.hash)) route = location.hash.slice(1);
-  if (!route) route = variant === 'triple' ? 'play' : mobile ? 'daily' : 'generate';
+  if (!route) route = variant === 'triple' ? 'play' : 'generate';
   const parts = route.split('/').filter(Boolean);
-  const page = pages.some(([key])=>key===parts[0]) ? parts[0] : 'daily';
-  const datePath = page === 'archive' ? parts.slice(1).join('/') : '';
-  function href(kind, section, date = '') {
-    const suffix = date ? '/' + date : '';
+  const page = pages.some(([key])=>key===parts[0]) ? parts[0] : 'generate';
+  function href(kind, section) {
     if (mobile) {
       if(kind==='double' && section==='techniques') return 'techniques.html';
       if(kind==='triple' && section==='build') return 'triple-build.html';
-      return `${kind==='triple'?'triple':'index'}.html?route=${section}${suffix}`;
+      return `${kind==='triple'?'triple':'index'}.html?route=${section}`;
     }
-    // Query dates share one archive document, including dates created after build.
-    return `${base}${kind}/${section}/${date?'?date='+date.replaceAll('/','-'):''}`;
+    return `${base}${kind}/${section}/`;
   }
-  const date = datePath || (page==='archive' ? (new URLSearchParams(location.search).get('date')||'').replaceAll('-','/') : '');
   if (!mobile) {
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.append(canonical); }
-    canonical.href = location.origin + href(variant, page, date);
+    canonical.href = location.origin + href(variant, page);
   }
   if (variant === 'triple' && ['#simulation','#walkthrough'].includes(location.hash)) {
     history.replaceState(null, '', href('triple', page));
   }
-  window.SudokuSite = { variant, page, date, href, mobile };
+  window.SudokuSite = { variant, page, href, mobile };
   document.documentElement.dataset.variant=variant;
   document.documentElement.dataset.section=page;
   const main=document.querySelector('main');
@@ -43,7 +39,7 @@
   label.append(logo,document.createTextNode('SUDOKU · REPEATED DIGITS'));header.append(label);
   const toggle=document.createElement('nav');toggle.className='variant-toggle';toggle.setAttribute('aria-label','Puzzle variant');
   for(const [kind,text] of [['double','Double Sudoku'],['triple','Triple Sudoku']]){
-    const link=document.createElement('a');link.href=href(kind,page,date);link.textContent=text;link.dataset.variant=kind;
+    const link=document.createElement('a');link.href=href(kind,page);link.textContent=text;link.dataset.variant=kind;
     if(kind===variant)link.setAttribute('aria-current','true');toggle.append(link);
   }
   const nav=document.createElement('nav');nav.className='site-tabs';nav.setAttribute('aria-label','Puzzle pages');

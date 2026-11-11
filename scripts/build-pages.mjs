@@ -1,4 +1,13 @@
-import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
+import path from 'node:path';
+
+// Remove retired routes from previous local builds as well as fresh deployments.
+const outputRoot = path.resolve('_site');
+for (const route of ['daily', 'archive', 'double/daily', 'double/archive', 'triple/daily', 'triple/archive']) {
+  const target = path.resolve(outputRoot, route);
+  if (!target.startsWith(outputRoot + path.sep)) throw new Error('Invalid output path');
+  await rm(target, { recursive: true, force: true });
+}
 import { examples, renderExample } from './technique-examples.mjs';
 
 // Pages serves directories rather than applying Vercel's catch-all rewrite.
