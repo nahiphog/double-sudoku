@@ -37,7 +37,7 @@
     <div class="actions"><button id="copy">Copy puzzle</button></div>
     </div>
     <section id="generatePage" class="triple-page">
-      <label for="generateMode">Digging method</label><select id="generateMode"><option value="single">Single-cell</option><option value="dual">Dual-cell, from start to finish</option></select>
+      <label for="generateMode">Digging method</label><select id="generateMode"><option value="single">Single-cell</option><option value="dual" selected>Dual-cell, from start to finish</option></select>
       <p class="route-note">Single-cell mode stops when no clue can be removed. Dual-cell mode removes 180° rotationally opposite pairs only and stops when no opposite pair can be removed. The centre stays filled; a single removable clue may remain.</p>
       <div class="actions"><button id="generateNew" type="button">Generate puzzle</button><button id="generatePlay" type="button" disabled>Play this puzzle</button><button id="generateWalkthrough" type="button" disabled>Walk through solution</button></div>
       <p id="generateStatus" role="status"></p><div id="generateOutput"></div>
