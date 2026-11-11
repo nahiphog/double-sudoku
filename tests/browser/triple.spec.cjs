@@ -83,6 +83,7 @@ test('simulation reports completed samples, stops, restarts and preserves play',
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.status() >= 400) errors.push(response.url()); });
   await page.goto('/triple.html?route=simulation');
+  await page.locator('#simulationDigMode').selectOption('single');
   const originalSave = await page.evaluate(()=>localStorage.getItem('triple-sudoku-progress-v1'));
   await page.locator('#simulationThreshold').fill('81');
   await page.locator('#simulationTrials').fill('8');
