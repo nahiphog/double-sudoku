@@ -26,3 +26,13 @@ html[data-variant="triple"] #simulation,html[data-variant="triple"] #walkthrough
 .route-note { font-size:14px; line-height:1.6; }
 [hidden] { display:none!important; }
 @media(max-width:480px){.site-header .variant-toggle a { flex:1; padding:10px 6px; font-size:15px; }.site-header .site-tabs a { font-size:12px; padding:8px 10px; }body main{padding-left:16px;padding-right:16px;}}
+
+html[data-variant="quadruple"] .quadruple-page { display:none; }
+html[data-variant="quadruple"][data-section="simulation"] #simulation,
+html[data-variant="quadruple"][data-section="walkthrough"] #walkthrough,
+html[data-variant="quadruple"][data-section="generate"] #generatePage,
+html[data-variant="quadruple"][data-section="verify"] #quadrupleVerify,
+html[data-variant="quadruple"][data-section="techniques"] #quadrupleTechniques{ display:block; }
+html[data-variant="quadruple"][data-section="play"] #playControls{ display:block; }
+html[data-variant="quadruple"] #simulation,html[data-variant="quadruple"] #walkthrough { margin:0; padding:0; border:0; }
+@media(max-width:480px){.site-header .variant-toggle{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}.variant-toggle a:last-child{grid-column:1 / -1;}}

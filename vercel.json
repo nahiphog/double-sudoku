@@ -1,6 +1,66 @@
 {
   "rewrites": [
     {
+      "source": "/double-sudoku/quadruple-sudoku.js",
+      "destination": "/quadruple-sudoku.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-ui.js",
+      "destination": "/quadruple-ui.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple.css",
+      "destination": "/quadruple.css"
+    },
+    {
+      "source": "/double-sudoku/quadruple-worker.js",
+      "destination": "/quadruple-worker.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-display.js",
+      "destination": "/quadruple-display.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-build.js",
+      "destination": "/quadruple-build.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-simulation.js",
+      "destination": "/quadruple-simulation.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-simulation-worker.js",
+      "destination": "/quadruple-simulation-worker.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-hints.js",
+      "destination": "/quadruple-hints.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-hint-worker.js",
+      "destination": "/quadruple-hint-worker.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple-walkthrough.js",
+      "destination": "/quadruple-walkthrough.js"
+    },
+    {
+      "source": "/double-sudoku/quadruple/build",
+      "destination": "/quadruple-build.html"
+    },
+    {
+      "source": "/double-sudoku/quadruple/build/",
+      "destination": "/quadruple-build.html"
+    },
+    {
+      "source": "/double-sudoku/quadruple/:path*",
+      "destination": "/quadruple.html"
+    },
+    {
+      "source": "/double-sudoku/quadruple",
+      "destination": "/quadruple.html"
+    },
+    {
       "source": "/double-sudoku/site-icon.svg",
       "destination": "/site-icon.svg"
     },

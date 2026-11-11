@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-variant="quadruple">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Quadruple Sudoku</title>
+  <meta name="description" content="Play uniquely solvable Quadruple Sudoku: place 0 and 1 exactly four times in every row, column and outlined region.">
+  <link rel="stylesheet" href="/double-sudoku/quadruple.css">
+  <script defer src="/double-sudoku/site-nav.js"></script>
+  <script defer src="/double-sudoku/quadruple-sudoku.js"></script>
+  <script defer src="/double-sudoku/quadruple-walkthrough.js"></script>
+  <script defer src="/double-sudoku/quadruple-display.js"></script>
+  <script defer src="/double-sudoku/quadruple-ui.js"></script>
+  <script defer src="/double-sudoku/quadruple-simulation.js"></script>
+<link rel="stylesheet" href="/double-sudoku/site-shell.css"><link rel="icon" type="image/svg+xml" sizes="any" href="/double-sudoku/site-icon.svg"></head>
+<body>
+  <main>
+    <nav aria-label="Puzzle version"><a href="/double-sudoku/double/generate/">← Double Sudoku</a><span aria-current="page">Quadruple Sudoku</span></nav>
+    <div class="route-intro"><h1 id="routeTitle">Quadruple Sudoku</h1><p id="routeDescription"></p></div>
+    <p class="route-note">An 8×8 grid using Double Sudoku’s outlined regions. Each row, column and region contains exactly four 0s and four 1s.</p>
+    <p id="pageNotice" role="status"></p>
+    <div id="playControls" class="quadruple-page">
+    <div class="puzzle-import custom-play-only"><label for="quadruplePlayInput">Load a puzzle (64 characters: 0, 1, and dots for blanks)</label><textarea id="quadruplePlayInput" rows="3" spellcheck="false"></textarea><button id="loadQuadruplePlay" type="button">Load puzzle</button><p id="loadQuadrupleStatus" role="status"></p></div>
+    <div class="custom-play-only">
+    <label for="digMode">Digging method</label>
+    <select id="digMode"><option value="single">Single-cell</option><option value="dual" selected>Dual-cell, from start to finish</option></select>
+    <div class="actions"><button id="newPuzzle">New puzzle</button></div>
+    </div>
+    <div class="actions"><button id="reset">Reset entries</button><button id="reveal">Show solution</button></div>
+    <p id="status" role="status" aria-live="polite">Generating a uniquely solvable puzzle…</p>
+    <section aria-label="Puzzle board">
+      <div id="grid" class="grid" aria-label="Quadruple Sudoku grid" aria-busy="true"></div>
+      <div class="actions" aria-label="Number selection">
+        <button data-digit="0" aria-pressed="true">0</button><button data-digit="1" aria-pressed="false">1</button><button data-digit="erase" aria-pressed="false">Erase</button><button id="notes" aria-pressed="false">Notes</button>
+      </div>
+      <p class="help">Choose a number, then tap a blank cell. Or focus a cell and type 0 and 1; use Backspace to erase. Notes are optional pencil marks. Red cells mean a number appears more than four times in a row, column or region.</p>
+    </section>
+    <div class="actions"><button id="copy">Copy puzzle</button></div>
+    </div>
+    <section id="generatePage" class="quadruple-page">
+      <label for="generateMode">Digging method</label><select id="generateMode"><option value="single">Single-cell</option><option value="dual" selected>Dual-cell, from start to finish</option></select>
+      <p class="route-note">Single-cell mode stops when no clue can be removed. Dual-cell mode removes 180° rotationally opposite pairs only and stops when no opposite pair can be removed. A single removable clue may remain.</p>
+      <div class="actions"><button id="generateNew" type="button">Generate puzzle</button><button id="generatePlay" type="button" disabled>Play this puzzle</button><button id="generateWalkthrough" type="button" disabled>Walk through solution</button></div>
+      <p id="generateStatus" role="status"></p><div id="generateOutput"></div>
+    </section>
+    <section id="quadrupleVerify" class="quadruple-page">
+      <label for="quadrupleVerifyInput">Puzzle string</label><textarea id="quadrupleVerifyInput" class="route-input" rows="3" placeholder="64 characters: 0, 1 and dots" spellcheck="false"></textarea>
+      <div class="actions"><button id="quadrupleVerifyButton" type="button">Verify puzzle</button></div><p id="quadrupleVerifyStatus" role="status"></p><div id="quadrupleVerifyOutput"></div>
+    </section>
+    <section id="quadrupleTechniques" class="quadruple-page">
+      <p>Use the same eight outlined regions as Double Sudoku. Each row, column and region contains four 0s and four 1s. Dots represent blanks; 0 is always a real digit.</p>
+      <article class="technique-card"><h3>Completed counts</h3><p>If a unit already has four 0s, all its empty cells must be 1. The reverse also holds.</p></article>
+      <article class="technique-card"><h3>Single candidates and forced copies</h3><p>Check the row, column and region of each empty cell. If only one digit fits, place it. If a unit needs two more 1s and only two cells allow 1, fill both.</p></article>
+      <article class="technique-card"><h3>Contradiction checks</h3><p>When basic counts stall, the walkthrough can test both values with an exact solver. If one value has no valid completion, the other is forced. These steps are explicitly labelled search-assisted.</p></article>
+      <p><a id="techniquesWalkLink">Try the solution walkthrough →</a></p>
+    </section>
+    <section class="quadruple-page" id="walkthrough" aria-labelledby="walkTitle">
+      <h2 id="walkTitle">Solution walkthrough</h2>
+      <p>Work through the current puzzle from its original clues. This separate board leaves your entries and notes unchanged.</p>
+      <p class="help">Uses completed counts, singles, forced copies, and explicitly labelled search-assisted contradiction checks.</p>
+      <button id="walkStart" type="button" disabled>Start / restart walkthrough</button>
+      <div id="walkContent" hidden>
+        <p id="walkCount"></p>
+        <div id="walkGrid" class="walk-grid" aria-label="Quadruple Sudoku walkthrough board"></div>
+        <p class="help">Small digits are candidates. Yellow marks supporting cells; blue outlines mark affected cells. Red struck-through candidates will be removed, and green candidates will be placed. Each digit is allowed four times per unit.</p>
+        <div class="actions"><button id="walkNext" type="button">Next deduction</button><button id="walkApply" type="button" disabled>Apply step</button><button id="walkUndo" type="button" disabled>Undo step</button></div>
+        <div aria-live="polite"><h3 id="walkTechnique">Walkthrough</h3><p id="walkExplanation"></p><ol id="walkProof"></ol><p id="walkChanges" class="help"></p></div>
+        <details><summary>Applied steps</summary><ol id="walkSteps"></ol></details>
+      </div>
+    </section>
+    <section class="quadruple-page" id="simulation" aria-labelledby="simulationTitle">
+      <h2 id="simulationTitle">Clue-count simulation</h2>
+      <p>Single-cell digging removes one clue at a time. Dual-cell digging removes only 180° rotationally opposite pairs, from start to finish, until no opposite pair can be removed. It may leave a removable single clue. Both modes preserve a unique solution, with no search limit.</p>
+      <p class="help">This is the observed distribution for this generator and random digging order, not a uniform sample of all Quadruple Sudoku puzzles. Each run starts a fresh sample and leaves your playable puzzle untouched.</p>
+      <form id="simulationForm" class="actions">
+        <label for="simulationTrials">Trials</label>
+        <input id="simulationTrials" type="number" min="1" max="1000000" step="1" value="100" required>
+        <label for="simulationThreshold">Show puzzles with at most</label>
+        <input id="simulationThreshold" type="number" min="0" max="64" step="1" value="30" required aria-describedby="simulationThresholdHelp">
+        <span>clues</span>
+        <label for="simulationDigMode">Digging method</label>
+        <select id="simulationDigMode"><option value="single">Single-cell</option><option value="dual" selected>Dual-cell, from start to finish</option></select>
+        <button id="simulationRun" type="submit">Run simulation</button>
+        <button id="simulationStop" type="button" disabled>Stop simulation</button>
+      </form>
+      <p id="simulationThresholdHelp" class="help">Choose the threshold before running. Every matching puzzle is shown; the histogram and statistics include all completed trials.</p>
+      <p id="simulationStatus" role="status" aria-live="polite">Choose a trial count, then run the simulation.</p>
+      <progress id="simulationProgress" value="0" max="100" aria-label="Completed trials"></progress>
+      <div id="simulationResults" hidden>
+        <p id="simulationSummary"></p>
+        <h3>Distribution of remaining clues</h3>
+        <p class="help">Clue count → number of puzzles (percentage of completed trials).</p>
+        <div id="simulationHistogram" aria-label="Clue-count histogram"></div>
+        <details>
+          <summary>View frequency table</summary>
+          <table><caption>Completed puzzles by clue count</caption><thead><tr><th scope="col">Clues</th><th scope="col">Puzzles</th><th scope="col">Percent</th></tr></thead><tbody id="simulationTable"></tbody></table>
+        </details>
+        <details id="simulationExample">
+          <summary id="simulationExampleTitle">Puzzles at or below the threshold</summary>
+          <p class="help">Every puzzle at or below the chosen clue count, with its completed grid and copy buttons. Blue numbers fill the blanks.</p>
+          <p id="simulationMatches" role="status" aria-live="polite"></p>
+          <div id="simulationExamples"></div>
+        </details>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -18,6 +18,8 @@ for (const example of examples) {
 }
 const triple = await readFile('triple.html', 'utf8');
 const tripleBuild = await readFile('triple-build.html', 'utf8');
+const quadruple = await readFile('quadruple.html', 'utf8');
+const quadrupleBuild = await readFile('quadruple-build.html', 'utf8');
 const sitemap = await readFile('sitemap.xml', 'utf8');
 const base = 'https://nahiphog.github.io/double-sudoku/';
 const routes = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(([, url]) => {
@@ -27,10 +29,10 @@ const routes = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(([, url]) => {
 for (const route of routes) {
   const directory = route ? `_site/${route}` : '_site';
   await mkdir(directory, { recursive: true });
-  await writeFile(`${directory}/index.html`, route === 'triple/build' ? tripleBuild : route.startsWith('triple/') ? triple : route === 'double/techniques' ? techniques : html);
+  await writeFile(`${directory}/index.html`, route === 'quadruple/build' ? quadrupleBuild : route.startsWith('quadruple/') ? quadruple : route === 'triple/build' ? tripleBuild : route.startsWith('triple/') ? triple : route === 'double/techniques' ? techniques : html);
 }
 // Keep old bookmarks working while sending visitors to the namespaced URLs.
-const aliases = new Map([['', 'double/generate'], ['double', 'double/generate'], ['triple', 'triple/generate']]);
+const aliases = new Map([['', 'double/generate'], ['double', 'double/generate'], ['triple', 'triple/generate'], ['quadruple', 'quadruple/generate']]);
 for (const route of routes) if (route.startsWith('double/')) aliases.set(route.slice(7), route);
 for (const [alias, target] of aliases) {
   const directory = alias ? `_site/${alias}` : '_site';
@@ -41,7 +43,7 @@ for (const [alias, target] of aliases) {
 }
 await copyFile('sitemap.xml', '_site/sitemap.xml');
 await copyFile('robots.txt', '_site/robots.txt');
-for (const file of ['hint-solver.js', 'hint-ui.js', 'hint-style.css', 'progress.js', 'mobile.css', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js', 'triple-display.js', 'triple-worker.js', 'triple-build.js', 'triple-hints.js', 'triple-hint-worker.js', 'triple-walkthrough.js', 'site-nav.js', 'site-shell.css', 'site-icon.svg']) {
+for (const file of ['hint-solver.js', 'hint-ui.js', 'hint-style.css', 'progress.js', 'mobile.css', 'triple-sudoku.js', 'triple-ui.js', 'triple.css', 'triple-simulation.js', 'triple-simulation-worker.js', 'triple-display.js', 'triple-worker.js', 'triple-build.js', 'triple-hints.js', 'triple-hint-worker.js', 'triple-walkthrough.js', 'site-nav.js', 'site-shell.css', 'site-icon.svg', 'quadruple-sudoku.js', 'quadruple-ui.js', 'quadruple.css', 'quadruple-worker.js', 'quadruple-display.js', 'quadruple-build.js', 'quadruple-simulation.js', 'quadruple-simulation-worker.js', 'quadruple-hints.js', 'quadruple-hint-worker.js', 'quadruple-walkthrough.js']) {
   await copyFile(file, `_site/${file}`);
 }
 await writeFile('_site/.nojekyll', '');

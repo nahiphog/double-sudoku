@@ -26,6 +26,7 @@ jobs:
           node --test tests/hint-solver.test.cjs
           node --test tests/technique-examples.test.mjs
           node --test tests/advanced-hints.test.mjs
+          node --test tests/quadruple-sudoku.test.cjs
           node scripts/build-pages.mjs
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:

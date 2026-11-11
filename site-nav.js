@@ -5,8 +5,8 @@
   const path = location.pathname;
   const variant = document.documentElement.dataset.variant || (path.includes('/triple') ? 'triple' : 'double');
   const pages = [['generate','Generate'],['build','Custom build'],['simulation','Simulation'],['verify','Verify'],['play','Play'],['walkthrough','Walkthrough'],['techniques','Techniques']];
-  let route = mobile ? new URLSearchParams(location.search).get('route') : path.startsWith(base) ? path.slice(base.length).replace(/^(?:double|triple)(?:\/|$)/,'') : '';
-  if (!route && /triple-build\.html$/.test(path)) route = 'build';
+  let route = mobile ? new URLSearchParams(location.search).get('route') : path.startsWith(base) ? path.slice(base.length).replace(/^(?:double|triple|quadruple)(?:\/|$)/,'') : '';
+  if (!route && /(?:triple|quadruple)-build\.html$/.test(path)) route = 'build';
   if (!route && /techniques(?:\.html|\/)?$/.test(path)) route = 'techniques';
   if (!route && variant === 'triple' && ['#simulation','#walkthrough'].includes(location.hash)) route = location.hash.slice(1);
   if (!route) route = 'generate';
@@ -15,8 +15,8 @@
   function href(kind, section) {
     if (mobile) {
       if(kind==='double' && section==='techniques') return 'techniques.html';
-      if(kind==='triple' && section==='build') return 'triple-build.html';
-      return `${kind==='triple'?'triple':'index'}.html?route=${section}`;
+      if(kind!=='double' && section==='build') return kind+'-build.html';
+      return `${kind==='double'?'index':kind}.html?route=${section}`;
     }
     return `${base}${kind}/${section}/`;
   }
@@ -38,7 +38,7 @@
   const logo=document.createElement('img');logo.className='site-logo';logo.src=mobile?'site-icon.svg':base+'site-icon.svg';logo.alt='Sudoku grid logo';logo.width=40;logo.height=40;
   label.append(logo,document.createTextNode('SUDOKU · REPEATED DIGITS'));header.append(label);
   const toggle=document.createElement('nav');toggle.className='variant-toggle';toggle.setAttribute('aria-label','Puzzle variant');
-  for(const [kind,text] of [['double','Double Sudoku'],['triple','Triple Sudoku']]){
+  for(const [kind,text] of [['double','Double Sudoku'],['triple','Triple Sudoku'],['quadruple','Quadruple Sudoku']]){
     const link=document.createElement('a');link.href=href(kind,page);link.textContent=text;link.dataset.variant=kind;
     if(kind===variant)link.setAttribute('aria-current','true');toggle.append(link);
   }
@@ -53,5 +53,5 @@
     intro.innerHTML='<h2>Double Sudoku walkthrough</h2><p>Load a puzzle below, then use the hint controls to show and apply one explained deduction at a time. Your progress is shared with Play.</p>';
     document.getElementById('playPage')?.prepend(intro);
   }
-  if(variant==='triple')document.title=`${pages.find(([key])=>key===page)[1]} | Triple Sudoku`;
+  if(variant!=='double')document.title=`${pages.find(([key])=>key===page)[1]} | ${variant==='quadruple'?'Quadruple':'Triple'} Sudoku`;
 })();
