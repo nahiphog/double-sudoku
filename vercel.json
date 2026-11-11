@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/double-sudoku/site-icon.svg",
+      "destination": "/site-icon.svg"
+    },
+    {
       "source": "/double-sudoku/double/techniques",
       "destination": "/techniques.html"
     },

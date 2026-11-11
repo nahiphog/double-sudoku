@@ -38,7 +38,9 @@
   const main=document.querySelector('main');
   main?.querySelector('nav')?.remove();
   const header=document.createElement('header');header.className='site-header';
-  const label=document.createElement('p');label.className='site-kicker';label.textContent='SUDOKU · REPEATED DIGITS';header.append(label);
+  const label=document.createElement('p');label.className='site-kicker';
+  const logo=document.createElement('img');logo.className='site-logo';logo.src=mobile?'site-icon.svg':base+'site-icon.svg';logo.alt='Sudoku grid logo';logo.width=40;logo.height=40;
+  label.append(logo,document.createTextNode('SUDOKU · REPEATED DIGITS'));header.append(label);
   const toggle=document.createElement('nav');toggle.className='variant-toggle';toggle.setAttribute('aria-label','Puzzle variant');
   for(const [kind,text] of [['double','Double Sudoku'],['triple','Triple Sudoku']]){
     const link=document.createElement('a');link.href=href(kind,page,date);link.textContent=text;link.dataset.variant=kind;

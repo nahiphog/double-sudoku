@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 const root = path.resolve('dist');
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
 http.createServer(async (req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
   const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
